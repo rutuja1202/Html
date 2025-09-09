@@ -1,0 +1,166 @@
+<!DOCTYPE html>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Countdown Timer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f4f4f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: 80px auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .countdown {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 30px;
+    }
+
+    .time-box {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .time-box h2 {
+      margin: 0;
+      font-size: 28px;
+      color: #007bff;
+    }
+
+    .time-box p {
+      margin: 5px 0 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .message {
+      margin-top: 20px;
+      font-size: 18px;
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⏳ Countdown Timer</h1>
+
+    <label for="datetime">Select Date & Time:</label><br>
+    <input type="datetime-local" id="datetime">
+    <button onclick="startCountdown()">Start</button>
+    <button onclick="resetCountdown()">Reset</button>
+
+    <div class="countdown" id="countdown">
+      <div class="time-box">
+        <h2 id="days">0</h2>
+        <p>Days</p>
+      </div>
+      <div class="time-box">
+        <h2 id="hours">0</h2>
+        <p>Hours</p>
+      </div>
+      <div class="time-box">
+        <h2 id="minutes">0</h2>
+        <p>Minutes</p>
+      </div>
+      <div class="time-box">
+        <h2 id="seconds">0</h2>
+        <p>Seconds</p>
+      </div>
+    </div>
+
+    <p class="message" id="message"></p>
+  </div>
+
+  <script>
+    let countdownInterval;
+
+    function startCountdown() {
+      const datetimeInput = document.getElementById("datetime").value;
+      if (!datetimeInput) {
+        alert("Please select a date and time!");
+        return;
+      }
+
+      const targetDate = new Date(datetimeInput).getTime();
+
+      clearInterval(countdownInterval); // reset previous timer
+
+      countdownInterval = setInterval(function () {
+        const now = new Date().getTime();
+        const distance = targetDate - now;
+
+        if (distance <= 0) {
+          clearInterval(countdownInterval);
+          document.getElementById("message").innerText = "⏰ Time's up!";
+          document.getElementById("days").innerText = 0;
+          document.getElementById("hours").innerText = 0;
+          document.getElementById("minutes").innerText = 0;
+          document.getElementById("seconds").innerText = 0;
+          return;
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        document.getElementById("days").innerText = days;
+        document.getElementById("hours").innerText = hours;
+        document.getElementById("minutes").innerText = minutes;
+        document.getElementById("seconds").innerText = seconds;
+        document.getElementById("message").innerText = "";
+      }, 1000);
+    }
+
+    function resetCountdown() {
+      clearInterval(countdownInterval);
+      document.getElementById("days").innerText = 0;
+      document.getElementById("hours").innerText = 0;
+      document.getElementById("minutes").innerText = 0;
+      document.getElementById("seconds").innerText = 0;
+      document.getElementById("message").innerText = "";
+      document.getElementById("datetime").value = "";
+    }
+  </script>
+</body>
+</html>

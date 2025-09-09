@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Infographic - Internet Users</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px;
+      background: #33aaff;
+      color: white;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    canvas {
+      width: 100% !important;
+      max-width: 800px;
+      margin: auto;
+      display: block;
+    }
+
+    .tooltip {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 5px;
+      font-size: 14px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      margin-top: 30px;
+      font-size: 14px;
+      background: #222;
+      color: #eee;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Global Internet Users Growth</h1>
+    <p>Interactive Infographic Example</p>
+  </header>
+
+  <div class="container">
+    <h2>Internet Users (2000 - 2020)</h2>
+    <canvas id="myChart"></canvas>
+    <div class="tooltip" id="tooltip"></div>
+  </div>
+
+  <footer>
+    <p>Designed with HTML, CSS & JavaScript | Interactive Infographic Demo</p>
+  </footer>
+
+  <!-- Chart.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const tooltip = document.getElementById("tooltip");
+
+    const data = {
+      labels: [2000, 2005, 2010, 2015, 2020],
+      datasets: [{
+        label: 'Internet Users (Billions)',
+        data: [0.36, 1.02, 2.03, 3.2, 4.5],
+        backgroundColor: 'rgba(76, 175, 80, 0.6)',
+        borderColor: '#4caf50',
+        borderWidth: 2
+      }]
+    };
+
+    const myChart = new Chart(ctx, {
+      type: 'bar',
+      data: data,
+      options: {
+        responsive: true,
+        plugins: {
+          tooltip: {
+            enabled: false, // disable default
+            external: customTooltip
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => value + "B"
+            }
+          }
+        }
+      }
+    });
+
+    // Custom tooltip
+    function customTooltip(context) {
+      const {chart, tooltip} = context;
+      const tooltipEl = document.getElementById('tooltip');
+
+      if (tooltip.opacity === 0) {
+        tooltipEl.style.opacity = 0;
+        return;
+      }
+
+      if (tooltip.body) {
+        const year = tooltip.dataPoints[0].label;
+        const users = tooltip.dataPoints[0].formattedValue;
+        tooltipEl.innerHTML = `<strong>${year}</strong><br>Users: ${users} Billion`;
+      }
+    
+
+      const {offsetLeft: positionX, offsetTop: positionY} = chart.canvas;
+      tooltipEl.style.opacity = 1;
+      tooltipEl.style.left = positionX + tooltip.caretX + "px";
+      tooltipEl.style.top = positionY + tooltip.caretY + "px";
+    }
+  </script>
+</body>
+</html>

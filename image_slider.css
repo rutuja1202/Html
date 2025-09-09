@@ -1,0 +1,71 @@
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #111;
+  font-family: Arial, sans-serif;
+}
+
+/* Slider Container */
+.slider-container {
+  position: relative;
+  width: 80%;
+  max-width: 800px;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.6);
+}
+
+/* Slides */
+.slides {
+  display: flex;
+  transition: transform 0.6s ease-in-out;
+}
+
+.slides img {
+  width: 100%;
+  border-radius: 12px;
+}
+
+/* Navigation Buttons */
+.prev, .next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 12px;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 20px;
+  transition: background 0.3s;
+}
+
+.prev:hover, .next:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.prev {
+  left: 15px;
+}
+
+.next {
+  right: 15px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .prev, .next {
+    padding: 8px;
+    font-size: 16px;
+  }
+}
