@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Recipe Book</title>
+  <style>
+    :root{
+      --bg:#f5f7fb; --card:#ffffff; --accent:#ff6b6b; --muted:#6b7280;
+      --radius:12px; --gap:16px; --max-width:1100px;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:linear-gradient(180deg, #eef2f7, var(--bg));
+      color:#0f172a; display:flex; align-items:flex-start; justify-content:center;
+      padding:28px 12px 60px;
+    }
+    .container{
+      width:100%; max-width:var(--max-width);
+      display:grid; grid-template-columns: 380px 1fr; gap:var(--gap);
+      align-items:start;
+    }
+
+    /* Left panel - form */
+    .panel{
+      background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:0 6px 18px rgba(11,18,36,0.06);
+    }
+    h1{font-size:20px; margin:0 0 8px}
+    p.lead{margin:0 0 14px; color:var(--muted); font-size:14px}
+
+    label{display:block; font-weight:600; margin-top:10px; font-size:13px}
+    input[type="text"], textarea, input[type="file"]{
+      width:100%; padding:10px 12px; margin-top:6px; border-radius:8px;
+      border:1px solid #e6e9ef; font-size:14px; background:#fff;
+      outline:none;
+    }
+    textarea{min-height:90px; resize:vertical}
+    .small{font-size:12px; color:var(--muted); margin-top:6px}
+
+    .row{display:flex; gap:10px}
+    .btn{
+      display:inline-flex; align-items:center; gap:8px; justify-content:center;
+      background:var(--accent); color:white; padding:10px 14px; border-radius:10px;
+      border:none; cursor:pointer; font-weight:600; margin-top:12px;
+    }
+    .btn.secondary{background:#374151}
+
+    .error{color:#b91c1c; font-size:13px; margin-top:8px}
+
+    /* Right panel - list + search */
+    .panel-right{display:flex; flex-direction:column; gap:12px}
+    .topbar{display:flex; gap:12px; align-items:center}
+    .search{
+      flex:1; display:flex; align-items:center; gap:8px;
+      background:#fff; padding:8px; border-radius:12px; border:1px solid #e6e9ef;
+    }
+    .search input{border:0; outline:none; padding:6px; width:100%; font-size:14px}
+    .stats{color:var(--muted); font-size:13px}
+
+    .grid{
+      display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:14px;
+    }
+    .card{
+      background:var(--card); border-radius:12px; padding:10px; overflow:hidden;
+      box-shadow:0 6px 14px rgba(11,18,36,0.04); cursor:pointer; display:flex; flex-direction:column;
+    }
+    .card img{width:100%; height:140px; object-fit:cover; border-radius:8px}
+    .card h3{font-size:15px; margin:8px 0 4px}
+    .card p{margin:0; color:var(--muted); font-size:13px; flex:1}
+    .card .meta{display:flex; gap:6px; margin-top:8px; align-items:center; justify-content:space-between}
+    .pill{background:#eef2f6; color:#0f172a; font-size:12px; padding:6px 8px; border-radius:999px}
+
+    /* Modal */
+    .modal-backdrop{position:fixed; inset:0; background:rgba(4,6,12,0.45); display:none; align-items:center; justify-content:center; padding:20px; z-index:200;}
+    .modal{background:var(--card); width:100%; max-width:900px; border-radius:12px; padding:18px; max-height:90vh; overflow:auto}
+    .modal .content{display:grid; grid-template-columns: 320px 1fr; gap:18px}
+    .modal img{width:100%; border-radius:10px; height:260px; object-fit:cover}
+    .close-btn{background:#f3f4f6; border-radius:8px; padding:8px 10px; border:0; cursor:pointer}
+
+    /* utils */
+    .muted{color:var(--muted)}
+    .center{display:flex; align-items:center; justify-content:center}
+    .empty{padding:40px; text-align:center; color:var(--muted); font-size:15px}
+
+    @media (max-width:980px){
+      .container{grid-template-columns:1fr; padding:0 10px}
+      .modal .content{grid-template-columns:1fr}
+      .panel{order:2}
+      .panel-right{order:1}
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="application" aria-label="Recipe Book">
+    <!-- LEFT: Add recipe form -->
+    <aside class="panel" aria-labelledby="form-title">
+      <h1 id="form-title">Add New Recipe</h1>
+      <p class="lead">Enter recipe name, ingredients, steps and an image.</p>
+
+      <form id="recipeForm" novalidate>
+        <label for="name">Recipe name *</label>
+        <input id="name" type="text" placeholder="e.g., Chocolate Chip Cookies" required>
+
+        <label for="ingredients">Ingredients * <span class="small muted">(one per line)</span></label>
+        <textarea id="ingredients" placeholder="1 cup flour&#10;2 tbsp sugar" required></textarea>
+
+        <label for="steps">Preparation steps * <span class="small muted">(separate steps by a blank line)</span></label>
+        <textarea id="steps" placeholder="Preheat oven...&#10;Mix..." required></textarea>
+
+        <label for="image">Image <span class="small muted">(jpg/png, optional)</span></label>
+        <input id="image" type="file" accept="image/*">
+
+        <div class="row" style="margin-top:8px;">
+          <button class="btn" id="addBtn" type="submit">Add Recipe</button>
+          <button class="btn secondary" id="clearAll" type="button">Clear All</button>
+        </div>
+        <div id="formError" class="error" role="alert" aria-live="polite" style="display:none"></div>
+      </form>
+    </aside>
+
+    <!-- RIGHT: Search + listing -->
+    <main class="panel panel-right" aria-labelledby="list-title">
+      <div class="topbar">
+        <div class="search" role="search" aria-label="Search recipes">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M21 21l-4.35-4.35" stroke="#94a3b8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="6" stroke="#94a3b8" stroke-width="1.6"/></svg>
+          <input id="searchInput" placeholder="Search recipes by name or ingredient..." aria-label="Search recipes">
+          <button id="resetSearch" class="close-btn" title="Clear search" style="display:none">Reset</button>
+        </div>
+        <div class="stats" id="countText">0 recipes</div>
+      </div>
+
+      <section id="listArea" class="grid" aria-live="polite" aria-atomic="true"></section>
+      <div id="emptyState" class="empty" style="display:none">
+        No recipes yet — add one on the left to get started.
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal for details -->
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal" role="document">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <strong id="modalTitle">Recipe</strong>
+        <div style="display:flex; gap:8px; align-items:center">
+          <button id="deleteBtn" class="close-btn" title="Delete recipe">Delete</button>
+          <button id="closeModal" class="close-btn" title="Close">Close</button>
+        </div>
+      </div>
+      <div class="content">
+        <div>
+          <img id="modalImage" src="" alt="Recipe image">
+        </div>
+        <div>
+          <h3 class="muted" id="modalName"></h3>
+          <h4 style="margin-top:12px">Ingredients</h4>
+          <ul id="modalIngredients"></ul>
+
+          <h4 style="margin-top:10px">Preparation Steps</h4>
+          <div id="modalSteps" style="white-space:pre-wrap; line-height:1.5; color:var(--muted)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // == Simple Recipe Book using localStorage ==
+    const LS_KEY = 'recipe_book_v1';
+    let recipes = [];
+
+    // Elements
+    const recipeForm = document.getElementById('recipeForm');
+    const nameInput = document.getElementById('name');
+    const ingInput = document.getElementById('ingredients');
+    const stepsInput = document.getElementById('steps');
+    const imageInput = document.getElementById('image');
+    const formError = document.getElementById('formError');
+    const addBtn = document.getElementById('addBtn');
+    const clearAllBtn = document.getElementById('clearAll');
+
+    const listArea = document.getElementById('listArea');
+    const emptyState = document.getElementById('emptyState');
+    const countText = document.getElementById('countText');
+
+    const searchInput = document.getElementById('searchInput');
+    const resetSearch = document.getElementById('resetSearch');
+
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalImage = document.getElementById('modalImage');
+    const modalIngredients = document.getElementById('modalIngredients');
+    const modalSteps = document.getElementById('modalSteps');
+    const modalName = document.getElementById('modalName');
+    const closeModal = document.getElementById('closeModal');
+    const deleteBtn = document.getElementById('deleteBtn');
+
+    // Initialization
+    function load() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        recipes = raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        console.error('Failed to load recipes', e);
+        recipes = [];
+      }
+      renderList();
+    }
+
+    function save() {
+      localStorage.setItem(LS_KEY, JSON.stringify(recipes));
+    }
+
+    // Utility: read file to dataURL
+    function readFileAsDataURL(file){
+      return new Promise((res, rej) => {
+        if (!file) return res(null);
+        const reader = new FileReader();
+        reader.onload = () => res(reader.result);
+        reader.onerror = () => rej(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Create card DOM
+    function createCard(recipe){
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.tabIndex = 0;
+      card.setAttribute('role','button');
+      card.innerHTML = `
+        <div style="min-height:140px; display:flex; align-items:center; justify-content:center; background:#f8fafc; border-radius:8px; overflow:hidden">
+          <img src="${recipe.image || placeholderDataURL(recipe.name)}" alt="${escapeHtml(recipe.name)} image">
+        </div>
+        <h3>${escapeHtml(recipe.name)}</h3>
+        <p class="muted">${escapeHtml((recipe.ingredients||[]).slice(0,3).join(', '))}${(recipe.ingredients||[]).length>3 ? ' …' : ''}</p>
+        <div class="meta">
+          <span class="pill">${(recipe.ingredients||[]).length} ingredient${(recipe.ingredients||[]).length!==1 ? 's' : ''}</span>
+          <small class="muted" style="font-size:12px">${new Date(recipe.createdAt).toLocaleDateString()}</small>
+        </div>
+      `;
+      // open modal on click or enter
+      card.addEventListener('click', () => openModal(recipe.id));
+      card.addEventListener('keydown', (e) => { if (e.key === 'Enter') openModal(recipe.id); });
+      return card;
+    }
+
+    // Basic placeholder: colored svg dataURL with initials
+    function placeholderDataURL(text){
+      const initials = (text || 'R').split(' ').map(s=>s[0]).slice(0,2).join('').toUpperCase();
+      const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='800' height='450'><rect width='100%' height='100%' fill='#e6eef8'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' font-size='80' fill='#6b7280' font-family='Arial'>${
+        initials}</text></svg>`;
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    // HTML escape small helper
+    function escapeHtml(s){
+      return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    // Render list with optional filter
+    function renderList(filter=''){
+      listArea.innerHTML = '';
+      const q = String(filter||'').trim().toLowerCase();
+      const filtered = recipes.filter(r => {
+        if (!q) return true;
+        return (r.name||'').toLowerCase().includes(q) ||
+               (r.ingredients || []).some(ing => ing.toLowerCase().includes(q));
+      }).sort((a,b)=> b.createdAt - a.createdAt);
+
+      if (filtered.length === 0){
+        emptyState.style.display = 'block';
+      } else {
+        emptyState.style.display = 'none';
+        filtered.forEach(r => listArea.appendChild(createCard(r)));
+      }
+      countText.textContent = filtered.length + ' recipe' + (filtered.length !== 1 ? 's' : '');
+      resetSearch.style.display = q ? 'inline-block' : 'none';
+    }
+
+    // Add recipe handler
+    recipeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      formError.style.display = 'none';
+      const name = nameInput.value.trim();
+      const ingredientsRaw = ingInput.value.trim();
+      const stepsRaw = stepsInput.value.trim();
+
+      // Validation
+      if (!name) return showFormError('Recipe name is required.');
+      if (!ingredientsRaw) return showFormError('At least one ingredient is required.');
+      if (!stepsRaw) return showFormError('Preparation steps are required.');
+
+      // parse ingredients: split by newline, remove empties
+      const ingredients = ingredientsRaw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+      const steps = stepsRaw;
+
+      // Read image file (if any) to data URL
+      const file = imageInput.files[0];
+      let imageData = null;
+      if (file){
+        if (!file.type.startsWith('image/')) return showFormError('Uploaded file must be an image.');
+        try {
+          imageData = await readFileAsDataURL(file);
+        } catch (err) {
+          console.warn(err);
+          return showFormError('Failed to read the image file.');
+        }
+      }
+
+      // Create recipe object
+      const recipe = {
+        id: cryptoRandomId(),
+        name,
+        ingredients,
+        steps,
+        image: imageData, // may be null
+        createdAt: Date.now()
+      };
+
+      recipes.push(recipe);
+      save();
+      renderList(searchInput.value);
+      recipeForm.reset();
+      nameInput.focus();
+    });
+
+    function showFormError(msg){
+      formError.textContent = msg;
+      formError.style.display = 'block';
+      setTimeout(()=> formError.style.display='none', 5000);
+    }
+
+    // Simple random id
+    function cryptoRandomId(){
+      if (crypto && crypto.randomUUID) return crypto.randomUUID();
+      return 'r_' + Math.random().toString(36).slice(2,10);
+    }
+
+    // Search
+    searchInput.addEventListener('input', (e) => renderList(e.target.value));
+    resetSearch.addEventListener('click', () => { searchInput.value = ''; renderList(''); searchInput.focus(); });
+
+    // Clear all (dangerous) - confirm
+    clearAllBtn.addEventListener('click', () => {
+      if (!recipes.length) { alert('No recipes to clear.'); return; }
+      if (confirm('Delete ALL recipes stored locally? This cannot be undone.')) {
+        recipes = [];
+        save();
+        renderList();
+      }
+    });
+
+    // Modal logic
+    let currentModalId = null;
+    function openModal(id){
+      const r = recipes.find(x => x.id === id);
+      if (!r) return;
+      currentModalId = id;
+      modalTitle.textContent = r.name;
+      modalName.textContent = r.name;
+      modalImage.src = r.image || placeholderDataURL(r.name);
+      // ingredients list
+      modalIngredients.innerHTML = '';
+      (r.ingredients || []).forEach(ing => {
+        const li = document.createElement('li');
+        li.textContent = ing;
+        modalIngredients.appendChild(li);
+      });
+      modalSteps.textContent = r.steps || '';
+      modalBackdrop.style.display = 'flex';
+      modalBackdrop.setAttribute('aria-hidden','false');
+    }
+
+    function closeModalFunc(){
+      currentModalId = null;
+      modalBackdrop.style.display = 'none';
+      modalBackdrop.setAttribute('aria-hidden','true');
+    }
+    closeModal.addEventListener('click', closeModalFunc);
+    modalBackdrop.addEventListener('click', (e) => { if (e.target === modalBackdrop) closeModalFunc(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModalFunc(); });
+
+    // Delete recipe
+    deleteBtn.addEventListener('click', () => {
+      if (!currentModalId) return;
+      if (!confirm('Delete this recipe?')) return;
+      recipes = recipes.filter(r => r.id !== currentModalId);
+      save();
+      renderList(searchInput.value);
+      closeModalFunc();
+    });
+
+    // small accessibility helpers: focus first input
+    nameInput.focus();
+
+    // Load on start
+    load();
+
+    // Preload sample recipe if storage empty (optional)
+    (function maybeAddSample(){
+      if (recipes.length === 0){
+        const sample = {
+          id: cryptoRandomId(),
+          name: 'Simple Pancakes',
+          ingredients: ['1 cup flour', '1 cup milk', '1 egg', '1 tbsp sugar', 'Pinch salt'],
+          steps: '1. Mix all ingredients until smooth.\n\n2. Heat a pan and pour 1/4 cup batter per pancake.\n\n3. Cook until bubbles form, flip and finish.\n\nServe warm with syrup.',
+          image: null,
+          createdAt: Date.now()
+        };
+        recipes.push(sample);
+        save();
+        renderList();
+      }
+    })();
+
+  </script>
+</body>
+</html>
