@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Personal Portfolio</title>
+  <style>
+    /* Basic reset and typography */
+    :root{
+      --accent: #2b6cb0;
+      --muted: #6b7280;
+      --card-bg: #ffffff;
+      --glass: rgba(255,255,255,0.85);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      color:#111827;
+      background: linear-gradient(180deg,#f6f8fb 0%, #fff 100%);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.5;
+    }
+
+    /* Header / navigation */
+    header{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(6px);
+      background: rgba(255,255,255,0.6);
+      border-bottom: 1px solid rgba(16,24,40,0.05);
+    }
+    .nav-container{
+      max-width:1100px; margin:0 auto; display:flex; align-items:center;
+      gap:1rem; padding:0.8rem;
+    }
+    .brand{
+      display:flex; align-items:center; gap:.6rem;
+      font-weight:700; font-size:1.05rem;
+    }
+    .brand .logo{
+      width:40px; height:40px; display:inline-grid; place-items:center;
+      background:var(--accent); color:white; border-radius:8px;
+      font-weight:700; font-size:1.1rem;
+    }
+    nav{margin-left:auto;}
+    .nav-links{display:flex; gap:0.6rem; align-items:center;}
+    .nav-links a{
+      padding:0.45rem 0.7rem; border-radius:8px; text-decoration:none; color:var(--muted);
+      font-weight:600; font-size:0.95rem;
+    }
+    .nav-links a:hover{color:var(--accent); background:rgba(43,108,176,0.06)}
+    .nav-links a.active{color:white; background:var(--accent); box-shadow:0 6px 18px rgba(43,108,176,0.12)}
+
+    /* Hero / Home */
+    .hero{
+      max-width:1100px; margin:28px auto; display:grid; grid-template-columns: 1fr 340px; gap:28px; align-items:center;
+      padding:0 16px;
+    }
+    .intro{
+      background:var(--glass);
+      padding:28px; border-radius:14px;
+      box-shadow: 0 8px 30px rgba(16,24,40,0.06);
+    }
+    .intro h1{margin:0 0 6px; font-size:2rem;}
+    .intro p{margin:0; color:var(--muted)}
+    .cta-row{margin-top:14px; display:flex; gap:10px; align-items:center;}
+    .btn{
+      display:inline-block; padding:10px 14px; border-radius:10px; text-decoration:none; font-weight:700;
+      background:var(--accent); color:white;
+    }
+    .btn.ghost{background:transparent; color:var(--accent); border:1px solid rgba(43,108,176,0.12)}
+
+    /* Slider inside hero right column */
+    .hero-right{display:flex; flex-direction:column; gap:10px; height:100%; }
+    .profile-card{
+      background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.8));
+      padding:14px; border-radius:12px; text-align:center; box-shadow:0 6px 18px rgba(16,24,40,0.06);
+    }
+    .profile-img{width:100px; height:100px; border-radius:50%; object-fit:cover; border:4px solid #fff; box-shadow:0 6px 18px rgba(16,24,40,0.06)}
+    .slider{
+      width:100%; height:150px; overflow:hidden; position:relative; border-radius:10px;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .slides{display:flex; transition:transform .10s ease;}
+    .slide{min-width:100%; padding:18px; box-sizing:border-box; display:flex; gap:12px; align-items:center;}
+    .slide img{width:80px; height:80px; object-fit:cover; border-radius:8px; flex-shrink:0}
+    .slide .meta{font-size:0.95rem}
+    .slider-controls{display:flex; gap:8px; justify-content:center; margin-top:8px;}
+    .dot{width:9px; height:9px; border-radius:50%; background: #d1d5db; cursor:pointer}
+    .dot.active{background:var(--accent); box-shadow:0 4px 10px rgba(43,108,176,0.18)}
+
+    /* Sections */
+    section{max-width:1100px; margin:30px auto; padding:0 16px;}
+    .section-title{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px}
+    .section-title h2{margin:0; font-size:1.25rem}
+    .card{background:var(--card-bg); padding:18px; border-radius:12px; box-shadow:0 6px 18px rgba(16,24,40,0.04)}
+    .about-grid{display:grid; grid-template-columns: 1fr 280px; gap:18px; align-items:start}
+    .skills{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+    .skill{padding:6px 10px; background:rgba(43,108,176,0.08); border-radius:8px; font-weight:600; font-size:0.9rem; color:var(--accent)}
+
+    /* Projects gallery */
+    .projects-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+    .project-card{padding:12px; border-radius:10px; background:linear-gradient(180deg,#fff,#fcfdff); border:1px solid rgba(16,24,40,0.03);}
+    .project-card img{width:100%; height:140px; object-fit:cover; border-radius:8px; display:block}
+    .project-card h3{margin:8px 0 6px; font-size:1rem}
+    .project-card p{margin:0; color:var(--muted); font-size:0.95rem}
+    .project-actions{margin-top:10px; display:flex; gap:8px}
+
+    /* Contact form */
+    form{display:grid; gap:8px}
+    label{font-weight:600; font-size:0.92rem}
+    input[type="text"], input[type="email"], textarea{
+      padding:10px 12px; border-radius:8px; border:1px solid rgba(16,24,40,0.08); width:100%;
+      font-size:0.95rem; resize:vertical;
+    }
+    .error{color:#b00020; font-size:0.86rem}
+
+    /* Footer */
+    footer{max-width:1100px; margin:36px auto 80px; padding:0 16px; color:var(--muted); font-size:0.9rem; text-align:center}
+
+    /* Modal */
+    .modal-backdrop{position:fixed; inset:0; background:rgba(2,6,23,0.6); display:none; align-items:center; justify-content:center; z-index:80}
+    .modal{background:white; max-width:900px; width:95%; border-radius:12px; padding:12px; box-shadow:0 12px 40px rgba(2,6,23,0.4)}
+    .modal img{width:100%; height:auto; border-radius:8px; display:block}
+
+    /* Responsive */
+    @media (max-width:900px){
+      .hero{grid-template-columns:1fr; }
+      .about-grid{grid-template-columns:1fr}
+      .projects-grid{grid-template-columns:repeat(2,1fr)}
+      .profile-card{order:-1}
+    }
+    @media (max-width:600px){
+      .nav-links{display:none}
+      .projects-grid{grid-template-columns:1fr}
+      .hero{margin:16px auto}
+      .intro h1{font-size:1.6rem}
+      .profile-img{width:100px;height:100px}
+    }
+
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="nav-container">
+    <div class="brand">
+      <div class="logo">RP</div>
+      <div>
+        <div style="font-size:.92rem">Rutuja Pathare</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:2px">Frontend Developer</div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-links" id="navLinks">
+        <a href="#home" class="nav-link active">Home</a>
+        <a href="#about" class="nav-link">About</a>
+        <a href="#projects" class="nav-link">Projects</a>
+        <a href="#contact" class="nav-link">Contact</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO / HOME -->
+  <section id="home" class="hero" aria-label="Home - Intro">
+    <div class="intro card" role="region" aria-labelledby="intro-title">
+      <h1 id="intro-title">Hi — I'm Rutuja</h1>
+      <p>I build responsive web interfaces with HTML, CSS and JavaScript.</p>
+
+      <div class="cta-row">
+        <a class="btn" href="#projects">View Projects</a>
+        <a class="btn ghost" href="#contact">Get in touch</a>
+      </div>
+
+      <div style="margin-top:18px; display:flex; gap:12px; align-items:center">
+        <div style="flex:1">
+          <strong>Skills</strong>
+          <div class="skills">
+            <div class="skill">HTML</div>
+            <div class="skill">CSS</div>
+            <div class="skill">JavaScript</div>
+            <div class="skill">React</div>
+            <div class="skill">Responsive</div>
+          </div>
+        </div>
+
+        <div style="text-align:right; min-width:120px;">
+          <div style="color:var(--muted); font-size:0.9rem">Contact</div>
+          <div style="font-weight:700">patharerutuja1202@example.com</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="hero-right" height="100%">
+      <div class="profile-card">
+        <img class="profile-img" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=600&auto=format&fit=crop&ixlib=rb-4.0.3&s=0e6b3a0f5c209f9b8b6adf0e0e6f2c00" alt="Profile picture">
+        <div style="margin-top:10px; font-weight:700;">Rutuja Pathare</div>
+        <div style="color:var(--muted); font-size:0.95rem">Frontend Developer</div>
+      </div>
+
+      <div class="card slider" aria-hidden="false" aria-label="Project highlights slider">
+        <div class="slides" id="slides">
+          <div class="slide">
+            <img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=400&auto=format&fit=crop" alt="">
+            <div class="meta">
+              <strong>Course Landing Page</strong>
+              <div style="color:var(--muted)">A responsive design using Flexbox and grid.</div>
+            </div>
+          </div>
+          <div class="slide"></div>
+            <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=400&auto=format&fit=crop" alt="">
+            <div class="meta">
+              <strong>Interactive Quiz App</strong>
+              <div style="color:var(--muted)">Vanilla JS, local storage, and state management.</div>
+            </div>
+          </div>
+          <div class="slide">
+            <img src="https://images.unsplash.com/photo-1523475496153-3d6ccf3d6d1f?q=80&w=400&auto=format&fit=crop" alt="">
+            <div class="meta">
+              <strong>Portfolio UI</strong>
+              <div style="color:var(--muted)">CSS animations and accessible markup.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slider-controls" id="dots" aria-hidden="false"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" aria-labelledby="about-title">
+    <div class="section-title">
+      <h2 id="about-title">About Me</h2>
+      <div style="color:var(--muted); font-size:0.95rem">Education • Experience • Hobbies</div>
+    </div>
+
+    <div class="card about-grid">
+      <div>
+        <p><strong>Summary</strong></p>
+        <p>I am a frontend developer focusing on clean, responsive interfaces. I like taking designs and implementing pixel-perfect, accessible UIs with modern HTML, CSS and JavaScript.</p>
+
+        <p style="margin-top:10px"><strong>Experience</strong></p>
+        <ul style="margin:6px 0 0 18px; color:var(--muted)">
+          <li>Intern — Frontend Developer (6 months)</li>
+          <li>Freelance UI projects</li>
+        </ul>
+
+        <p style="margin-top:10px"><strong>Hobbies</strong></p>
+        <p style="color:var(--muted)">Photography, learning CSS tricks, and exploring design systems.</p>
+      </div>
+
+      <div>
+        <div style="margin-bottom:10px"><strong>Contact</strong></div>
+        <div style="color:var(--muted)">Pune, India</div>
+        <div style="margin-top:8px; font-weight:700">patharerutuja1202@example.com</div>
+
+        <div style="margin-top:18px">
+          <strong>Tools</strong>
+          <div class="skills" style="margin-top:8px">
+            <div class="skill">VSCode</div>
+            <div class="skill">Git</div>
+            <div class="skill">Chrome DevTools</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects" aria-labelledby="projects-title">
+    <div class="section-title">
+      <h2 id="projects-title">Projects</h2>
+      <div style="color:var(--muted); font-size:0.95rem">Selected works</div>
+    </div>
+
+    <div class="projects-grid" id="projectsGrid">
+      <!-- Project 1 -->
+      <article class="project-card" data-img="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1200&auto=format&fit=crop">
+        <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600&auto=format&fit=crop" alt="Course landing screenshot">
+        <h3>Course Landing Page</h3>
+        <p>Responsive landing page built with grid and accessible forms.</p>
+        <div class="project-actions">
+          <button class="btn view-btn" aria-label="View project images">View</button>
+          <a class="btn ghost" href="#contact">Hire Me</a>
+        </div>
+      </article>
+
+      <!-- Project 2 -->
+      <article class="project-card" data-img="https://images.unsplash.com/photo-1526378723573-8b7a8b3c9f9f?q=80&w=1200&auto=format&fit=crop">
+        <img src="data:image/jpeg;base64,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" alt="Quiz app screenshot">
+        <h3>Interactive Quiz App</h3>
+        <p>Vanilla JS quiz with scoring and persistent progress.</p>
+        <div class="project-actions">
+          <button class="btn view-btn">View</button>
+          <a class="btn ghost" href="#contact">Demo</a>
+        </div>
+      </article>
+
+      <!-- Project 3 -->
+      <article class="project-card" data-img="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop">
+        <img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=600&auto=format&fit=crop" alt="Portfolio UI">
+        <h3>Portfolio UI</h3>
+        <p>Modular UI components, light/dark system-ready layout.</p>
+        <div class="project-actions">
+          <button class="btn view-btn">View</button>
+          <a class="btn ghost" href="#contact">Source</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" aria-labelledby="contact-title">
+    <div class="section-title">
+      <h2 id="contact-title">Contact</h2>
+      <div style="color:var(--muted); font-size:0.95rem">Send a message</div>
+    </div>
+
+    <div class="card">
+      <form id="contactForm" novalidate>
+        <div>
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" placeholder="Your full name" required>
+          <div class="error" id="nameError" aria-live="polite"></div>
+        </div>
+
+        <div>
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" placeholder="you@example.com" required>
+          <div class="error" id="emailError" aria-live="polite"></div>
+        </div>
+
+        <div>
+          <label for="subject">Subject</label>
+          <input id="subject" name="subject" type="text" placeholder="Subject">
+        </div>
+
+        <div>
+          <label for="message">Message</label>
+          <textarea id="message" name="message" rows="5" placeholder="Write your message..." required></textarea>
+          <div class="error" id="messageError" aria-live="polite"></div>
+        </div>
+
+        <div style="display:flex; gap:8px; align-items:center">
+          <button class="btn" type="submit">Send Message</button>
+          <div id="formSuccess" style="color:green; font-weight:700"></div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<!-- Modal for project previews -->
+<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="modal" role="document">
+    <button id="modalClose" style="float:right;border:none;background:transparent;font-weight:700;font-size:18px;cursor:pointer">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<footer>
+  © <span id="year"></span> Rutuja Pathare • Built with HTML, CSS & JavaScript
+</footer>
+
+<script>
+  // --- Small DOM utilities
+  const q = s => document.querySelector(s);
+  const qa = s => Array.from(document.querySelectorAll(s));
+
+  // Update year
+  q('#year').textContent = new Date().getFullYear();
+
+  // --- Slider logic (hero highlights)
+  (function initSlider(){
+    const slidesEl = q('#slides');
+    const slides = qa('.slide');
+    const dotsEl = q('#dots');
+    let index = 0;
+
+    // create dots
+    slides.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (i===0 ? ' active' : '');
+      dot.dataset.i = i;
+      dot.addEventListener('click', () => { goTo(i); resetTimer(); });
+      dotsEl.appendChild(dot);
+    });
+
+    function goTo(i){
+      index = i;
+      slidesEl.style.transform = `translateX(-${i*100}%)`;
+      qa('.dot').forEach(d => d.classList.toggle('active', +d.dataset.i === i));
+    }
+
+    let timer = setInterval(() => { goTo((index+1) % slides.length); }, 4500);
+    function resetTimer(){ clearInterval(timer); timer = setInterval(() => { goTo((index+1)%slides.length); }, 4500); }
+
+    // expose for debug
+    window._heroSlider = { goTo };
+  })();
+
+  // --- Modal for project images
+  (function initModal(){
+    const modal = q('#modalBackdrop');
+    const modalContent = q('#modalContent');
+    const closeBtn = q('#modalClose');
+
+    function openModal(imgUrl, title){
+      modalContent.innerHTML = `<h3 style="margin-top:0">${title}</h3><img src="${imgUrl}" alt="${title} preview">`;
+      modal.style.display = 'flex';
+      modal.setAttribute('aria-hidden','false');
+    }
+    function closeModal(){
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden','true');
+      modalContent.innerHTML = '';
+    }
+
+    qa('.view-btn').forEach((btn, i) => {
+      btn.addEventListener('click', (e) => {
+        const card = e.target.closest('.project-card');
+        const img = card.dataset.img || card.querySelector('img').src;
+        const title = card.querySelector('h3').textContent;
+        openModal(img, title);
+      });
+    });
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
+  })();
+
+  // --- Smooth navigation & active link on scroll
+  (function navOnScroll(){
+    const links = qa('.nav-link');
+    const sections = links.map(l => document.querySelector(l.getAttribute('href')));
+    // Click behavior handled by anchor smooth scroll (native), keep default.
+
+    function onScroll(){
+      const y = window.scrollY + 120; // offset for sticky header
+      let current = 0;
+      sections.forEach((sec, idx) => {
+        if(sec && sec.offsetTop <= y) current = idx;
+      });
+      links.forEach((lnk, idx) => lnk.classList.toggle('active', idx === current));
+    }
+    window.addEventListener('scroll', onScroll, {passive:true});
+    onScroll();
+  })();
+
+  // --- Contact form validation & simple submit simulation
+  (function contactForm(){
+    const form = q('#contactForm');
+    const nameInput = q('#name'), emailInput = q('#email'), messageInput = q('#message');
+    const nameErr = q('#nameError'), emailErr = q('#emailError'), messageErr = q('#messageError'), success = q('#formSuccess');
+
+    function validateEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+    function clearErrors(){ nameErr.textContent=''; emailErr.textContent=''; messageErr.textContent=''; success.textContent=''; }
+
+    form.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      clearErrors();
+      let ok = true;
+
+      if(!nameInput.value.trim()){ nameErr.textContent = 'Please enter your name'; ok = false; }
+      if(!validateEmail(emailInput.value.trim())){ emailErr.textContent = 'Enter a valid email'; ok = false; }
+      if(messageInput.value.trim().length < 10){ messageErr.textContent = 'Message must be at least 10 characters'; ok = false; }
+
+      if(!ok) return;
+
+      // Simulate sending (no backend)
+      success.textContent = 'Message sent — thank you!';
+      form.reset();
+      setTimeout(()=> success.textContent='', 6000);
+    });
+  })();
+
+  // Accessibility: make nav links focusable with keyboard and close modal on deep focus loss
+  qa('.nav-link').forEach(el => { el.addEventListener('keydown', (e)=>{ if(e.key==='Enter') el.click(); }) });
+
+</script>
+</body>
+</html>
