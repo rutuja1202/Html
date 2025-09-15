@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Art Gallery</title>
+  <style>
+    :root {
+      --bg: #111827;
+      --accent: #f59e0b;
+      --card: #1f2937;
+      --text: #f3f4f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .gallery {
+      width: 100%;
+      max-width: 900px;
+      height: 80vh;
+      perspective: 1200px;
+      position: relative;
+    }
+    .carousel {
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 1s;
+      position: relative;
+    }
+    .artwork {
+      position: absolute;
+      width: 60%;
+      height: 70%;
+      left: 20%;
+      top: 10%;
+      border: 6px solid #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--card);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      cursor: pointer;
+      transform: translateZ(-500px);
+      transition: transform 0.5s;
+    }
+    .artwork img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .artwork:hover {
+      transform: scale(1.05);
+    }
+    .controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+    }
+    .btn {
+      padding: 10px 20px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn:hover {
+      background: #d97706;
+    }
+    /* Pop-up modal */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-content {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 600px;
+      width: 100%;
+      color: var(--text);
+      text-align: center;
+    }
+    .modal-content img {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    .close {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    @media (max-width: 600px) {
+      .artwork {
+        width: 80%;
+        left: 10%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="gallery">
+    <div class="carousel" id="carousel">
+      <div class="artwork" data-title="Starry Night" data-desc="Vincent van Gogh, 1889.">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/800px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg" alt="Starry Night">
+      </div>
+      <div class="artwork" data-title="The Scream" data-desc="Edvard Munch, 1893.">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/f/f4/The_Scream.jpg" alt="The Scream">
+      </div>
+      <div class="artwork" data-title="Mona Lisa" data-desc="Leonardo da Vinci, 1503.">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6a/Mona_Lisa.jpg" alt="Mona Lisa">
+      </div>
+      <div class="artwork" data-title="The Persistence of Memory" data-desc="Salvador Dalí, 1931.">
+        <img src="https://upload.wikimedia.org/wikipedia/en/d/dd/The_Persistence_of_Memory.jpg" alt="Persistence of Memory">
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="prev">◀ Prev</button>
+      <button class="btn" id="next">Next ▶</button>
+    </div>
+  </div>
+
+  <!-- Modal for artwork details -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h2 id="artTitle"></h2>
+      <img id="artImg" src="" alt="">
+      <p id="artDesc"></p>
+      <button class="close" id="closeModal">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const carousel = document.getElementById('carousel');
+    const artworks = document.querySelectorAll('.artwork');
+    let angle = 0;
+    const step = 360 / artworks.length;
+
+    // Position artworks in 3D circle
+    artworks.forEach((art, i) => {
+      art.style.transform = `rotateY(${i * step}deg) translateZ(500px)`;
+    });
+
+    // Navigation
+    document.getElementById('next').addEventListener('click', () => {
+      angle -= step;
+      carousel.style.transform = `rotateY(${angle}deg)`;
+    });
+    document.getElementById('prev').addEventListener('click', () => {
+      angle += step;
+      carousel.style.transform = `rotateY(${angle}deg)`;
+    });
+
+    // Modal pop-up
+    const modal = document.getElementById('modal');
+    const artTitle = document.getElementById('artTitle');
+    const artImg = document.getElementById('artImg');
+    const artDesc = document.getElementById('artDesc');
+    const closeModal = document.getElementById('closeModal');
+
+    artworks.forEach(art => {
+      art.addEventListener('click', () => {
+        artTitle.textContent = art.dataset.title;
+        artImg.src = art.querySelector('img').src;
+        artDesc.textContent = art.dataset.desc;
+        modal.style.display = 'flex';
+      });
+    });
+
+    closeModal.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
