@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Secure & Share Documents</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f3f4f6; margin:0; padding:20px;}
+    .card { background:white; padding:16px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); margin-bottom:20px; }
+    h2 { margin-top:0; }
+    input,button { padding:10px; margin:5px 0; border-radius:6px; border:1px solid #ccc; width:100%; }
+    button { background:#2563eb; color:white; border:none; cursor:pointer; }
+    button:hover { background:#1e40af; }
+    .doc-list { margin-top:10px; }
+    .doc-item { display:flex; justify-content:space-between; align-items:center; padding:10px; border:1px solid #ddd; border-radius:8px; margin-bottom:8px; }
+    .small-btn { padding:6px 10px; font-size:13px; margin-left:5px; }
+  </style>
+</head>
+<body>
+
+  <div class="card" id="authCard">
+    <h2>Register / Login</h2>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button id="registerBtn">Register</button>
+    <button id="loginBtn">Login</button>
+  </div>
+
+  <div class="card" id="profileCard" style="display:none;">
+    <h2>Welcome</h2>
+    <p id="userEmail"></p>
+    <button id="logoutBtn">Logout</button>
+  </div>
+
+  <div class="card" id="uploadCard" style="display:none;">
+    <h2>Upload Document</h2>
+    <input type="text" id="docName" placeholder="Document Name" required>
+    <input type="file" id="docFile" accept=".pdf,.jpg,.png" required>
+    <button id="uploadBtn">Upload</button>
+  </div>
+
+  <div class="card" id="docsCard" style="display:none;">
+    <h2>My Documents</h2>
+    <div class="doc-list" id="docList"></div>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    // Replace with your Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } 
+      from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, where, doc, deleteDoc, updateDoc }
+      from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject }
+      from "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    // UI Elements
+    const registerBtn = document.getElementById("registerBtn");
+    const loginBtn = document.getElementById("loginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const uploadBtn = document.getElementById("uploadBtn");
+
+    const authCard = document.getElementById("authCard");
+    const profileCard = document.getElementById("profileCard");
+    const uploadCard = document.getElementById("uploadCard");
+    const docsCard = document.getElementById("docsCard");
+
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const userEmail = document.getElementById("userEmail");
+
+    const docNameInput = document.getElementById("docName");
+    const docFileInput = document.getElementById("docFile");
+    const docList = document.getElementById("docList");
+
+    let currentUser = null;
+
+    // Auth
+    registerBtn.onclick = async () => {
+      try {
+        await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+      } catch(err) { alert(err.message); }
+    };
+
+    loginBtn.onclick = async () => {
+      try {
+        await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+      } catch(err) { alert(err.message); }
+    };
+
+    logoutBtn.onclick = () => signOut(auth);
+
+    onAuthStateChanged(auth, (user) => {
+      if(user){
+        currentUser = user;
+        authCard.style.display="none";
+        profileCard.style.display="block";
+        uploadCard.style.display="block";
+        docsCard.style.display="block";
+        userEmail.textContent = "Logged in as: " + user.email;
+        loadDocs();
+      } else {
+        currentUser = null;
+        authCard.style.display="block";
+        profileCard.style.display="none";
+        uploadCard.style.display="none";
+        docsCard.style.display="none";
+      }
+    });
+
+    // Upload Doc
+    uploadBtn.onclick = async () => {
+      const file = docFileInput.files[0];
+      const name = docNameInput.value;
+      if(!file || !name){ alert("Fill all fields"); return; }
+
+      const fileRef = ref(storage, `docs/${currentUser.uid}/${file.name}`);
+      await uploadBytes(fileRef, file);
+      const url = await getDownloadURL(fileRef);
+
+      await addDoc(collection(db,"documents"), {
+        name, url, owner: currentUser.uid, ownerEmail: currentUser.email, sharedWith:[]
+      });
+
+      alert("Uploaded!");
+      docNameInput.value=""; docFileInput.value="";
+    };
+
+    // Load Docs
+    function loadDocs(){
+      const q = query(collection(db,"documents"), where("owner","==",currentUser.uid));
+      onSnapshot(q,(snap)=>{
+        docList.innerHTML="";
+        snap.forEach(d=>{
+          const data = d.data();
+          const div = document.createElement("div");
+          div.className="doc-item";
+          div.innerHTML = `
+            <span>${data.name}</span>
+            <span>
+              <a href="${data.url}" target="_blank" class="small-btn">View</a>
+              <button class="small-btn" onclick="deleteDocFn('${d.id}','${data.url}')">Delete</button>
+              <button class="small-btn" onclick="shareDocFn('${d.id}')">Share</button>
+            </span>`;
+          docList.appendChild(div);
+        });
+      });
+    }
+
+    // Delete Doc
+    window.deleteDocFn = async (id,url) => {
+      if(confirm("Delete this doc?")){
+        await deleteDoc(doc(db,"documents",id));
+        const fileRef = ref(storage, url);
+        try{ await deleteObject(fileRef); }catch{}
+      }
+    };
+
+    // Share Doc
+    window.shareDocFn = async (id) => {
+      const email = prompt("Enter email to share with:");
+      if(!email) return;
+      const refDoc = doc(db,"documents",id);
+      await updateDoc(refDoc,{ sharedWith: [email] });
+      alert("Shared with "+email);
+    };
+
+  </script>
+</body>
+</html>
