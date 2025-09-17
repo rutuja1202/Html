@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Investors ⇄ Business Bridge</title>
+  <style>
+    :root{
+      --bg:#f5f7fb; --card:#fff; --accent:#2563eb; --muted:#64748b;
+      --good:#10b981; --danger:#ef4444; --radius:10px;
+      font-synthesis: none;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:Inter, system-ui, Arial, sans-serif;
+      background:linear-gradient(180deg,#eef2ff,#f8fafc);
+      min-height:100vh; display:flex; align-items:flex-start; justify-content:center;
+      padding:28px;
+    }
+    .container{
+      width:100%; max-width:1100px;
+      display:grid; grid-template-columns: 360px 1fr; gap:20px;
+    }
+    .card{
+      background:var(--card); border-radius:var(--radius); padding:18px;
+      box-shadow:0 8px 30px rgba(15,23,42,0.06);
+    }
+    header{ grid-column:1/-1; display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px }
+    h1{ margin:0; font-size:20px; color:#0f172a }
+    .muted{ color:var(--muted); font-size:13px }
+
+    /* auth form */
+    label{ display:block; font-size:13px; margin-top:10px; color:#0b1220; font-weight:600 }
+    input, select, textarea{
+      width:100%; padding:10px 12px; margin-top:6px; border-radius:8px;
+      border:1px solid #e6eef8; background:#fbfdff; font-size:14px;
+    }
+    .row{ display:flex; gap:8px }
+    .btn{
+      display:inline-block; padding:10px 12px; background:var(--accent); color:#fff;
+      border:0; border-radius:8px; cursor:pointer; font-weight:700;
+    }
+    .btn.ghost{ background:#eaf2ff; color:var(--accent); box-shadow:none }
+    .small{ font-size:13px; padding:8px 10px; border-radius:8px }
+
+    /* proposals list */
+    .list{ display:grid; gap:10px; max-height:62vh; overflow:auto; padding-right:6px }
+    .proposal{ border-radius:10px; padding:12px; background:linear-gradient(180deg,#fff,#fbfdff); border:1px solid #eef4ff }
+    .meta{ display:flex; justify-content:space-between; gap:10px; align-items:center; font-size:13px; color:var(--muted) }
+    .tags{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap }
+    .tag{ padding:6px 8px; border-radius:999px; font-weight:700; font-size:12px; background:#f1f7ff; color:var(--accent) }
+
+    /* responsive */
+    @media (max-width:960px){
+      .container{ grid-template-columns: 1fr; }
+      header{ flex-direction:column; align-items:flex-start; gap:10px }
+    }
+    .notice{ font-size:13px; color:var(--muted); margin-top:10px }
+    .danger{ color:var(--danger) }
+  </style>
+</head>
+<body>
+  <div class="container" role="application" aria-label="Investors and Business Bridge">
+    <header>
+      <div>
+        <h1>Bridge: Investors ↔ Businesses</h1>
+        <div class="muted">Connect, post proposals and explore opportunities</div>
+      </div>
+      <div id="authControls"></div>
+    </header>
+
+    <!-- Left: Auth & Post -->
+    <aside class="card" id="leftCard">
+      <div id="authArea">
+        <h3>Sign Up / Login</h3>
+        <div class="muted">Choose a role and register with email/password.</div>
+
+        <label for="role">Role</label>
+        <select id="role">
+          <option value="business">Business Person</option>
+          <option value="investor">Investor</option>
+        </select>
+
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="you@example.com" />
+
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="min 6 characters" />
+
+        <div style="margin-top:12px; display:flex; gap:8px">
+          <button id="registerBtn" class="btn">Register</button>
+          <button id="loginBtn" class="btn ghost">Login</button>
+        </div>
+
+        <div class="notice">Tip: After signup, your profile is created in Firestore. You can then post proposals.</div>
+      </div>
+
+      <div id="postArea" style="display:none; margin-top:16px;">
+        <h3 id="postTitle">Post New Idea</h3>
+
+        <label for="title">Title</label>
+        <input id="title" type="text" placeholder="Short title (e.g., 'Food delivery for factories')" />
+
+        <label for="description">Description</label>
+        <textarea id="description" rows="6" placeholder="Describe the idea, expected investment, contact info..."></textarea>
+
+        <div style="margin-top:10px; display:flex; gap:8px">
+          <button id="postBtn" class="btn">Post</button>
+          <button id="clearBtn" class="btn ghost">Clear</button>
+        </div>
+
+        <div id="extraActions" style="margin-top:12px; display:flex; gap:8px"></div>
+      </div>
+
+      <div id="userInfo" style="margin-top:18px; display:none;">
+        <div class="muted">Logged in as</div>
+        <div id="userEmail" style="font-weight:700; margin-top:6px"></div>
+        <div id="userRole" class="muted" style="margin-top:4px"></div>
+        <div style="margin-top:8px">
+          <button id="logoutBtn" class="btn ghost small">Logout</button>
+          <button id="refreshBtn" class="btn small">Refresh Proposals</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Right: Proposals -->
+    <section class="card">
+      <h3>Proposals & Investor Posts</h3>
+      <div class="muted">Browse posted ideas from businesses and investor proposals.</div>
+
+      <div style="margin-top:12px; display:flex; gap:8px; align-items:center">
+        <input id="search" type="search" placeholder="Search title or description..." style="flex:1; padding:8px 10px; border-radius:8px; border:1px solid #e6eef8" />
+        <select id="filterRole" style="padding:8px 10px; border-radius:8px; border:1px solid #e6eef8">
+          <option value="">All</option>
+          <option value="business">Businesses</option>
+          <option value="investor">Investors</option>
+        </select>
+      </div>
+
+      <div id="list" class="list" style="margin-top:12px"></div>
+    </section>
+  </div>
+
+  <!-- Firebase SDK (compat mode for simplicity) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    /**********************
+     *  CONFIGURE FIREBASE
+     *  Replace the firebaseConfig below with your project's values.
+     *  You get these in Firebase Console -> Project settings -> SDK setup
+     **********************/
+    const firebaseConfig = {
+      apiKey: "REPLACE_WITH_YOUR_API_KEY",
+      authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
+      projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
+      storageBucket: "REPLACE_WITH_YOUR_BUCKET",
+      messagingSenderId: "REPLACE_WITH_MSG_SENDER_ID",
+      appId: "REPLACE_WITH_APP_ID"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // --- UI references ---
+    const registerBtn = document.getElementById('registerBtn');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const roleEl = document.getElementById('role');
+    const emailEl = document.getElementById('email');
+    const pwdEl = document.getElementById('password');
+
+    const authControls = document.getElementById('authControls');
+    const authArea = document.getElementById('authArea');
+    const postArea = document.getElementById('postArea');
+    const userInfo = document.getElementById('userInfo');
+    const userEmail = document.getElementById('userEmail');
+    const userRole = document.getElementById('userRole');
+    const postBtn = document.getElementById('postBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const titleEl = document.getElementById('title');
+    const descEl = document.getElementById('description');
+    const listEl = document.getElementById('list');
+    const filterRole = document.getElementById('filterRole');
+    const searchEl = document.getElementById('search');
+    const postTitle = document.getElementById('postTitle');
+    const extraActions = document.getElementById('extraActions');
+
+    // Current signed-in user data cached
+    let currentUser = null;
+
+    // --- Helper functions ---
+    function showNotice(msg, isError = false){
+      const d = document.createElement('div');
+      d.textContent = msg;
+      d.className = isError ? 'danger' : 'muted';
+      d.style.marginTop = '10px';
+      authArea.appendChild(d);
+      setTimeout(()=>d.remove(), 4000);
+    }
+
+    // Create user profile doc in Firestore after signup
+    function createProfile(uid, email, role){
+      const docRef = db.collection('users').doc(uid);
+      return docRef.set({
+        email,
+        role,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    }
+
+    // Register
+    registerBtn.addEventListener('click', async ()=>{
+      const email = emailEl.value.trim();
+      const pwd = pwdEl.value;
+      const role = roleEl.value;
+      if (!email || pwd.length < 6) return showNotice('Enter valid email and password (min 6 chars)', true);
+      try{
+        const cred = await auth.createUserWithEmailAndPassword(email, pwd);
+        await createProfile(cred.user.uid, email, role);
+        showNotice('Registered & profile created. Logged in.');
+      } catch(err){
+        showNotice('Register error: ' + err.message, true);
+      }
+    });
+
+    // Login
+    loginBtn.addEventListener('click', async ()=>{
+      const email = emailEl.value.trim();
+      const pwd = pwdEl.value;
+      if (!email || !pwd) return showNotice('Enter email and password', true);
+      try{
+        await auth.signInWithEmailAndPassword(email, pwd);
+        showNotice('Logged in');
+      } catch(err){
+        showNotice('Login error: ' + err.message, true);
+      }
+    });
+
+    // Logout
+    logoutBtn.addEventListener('click', async ()=>{
+      await auth.signOut();
+      showNotice('Logged out');
+    });
+
+    // Post proposal
+    postBtn.addEventListener('click', async ()=>{
+      if (!currentUser) return showNotice('Login to post', true);
+      const title = titleEl.value.trim();
+      const description = descEl.value.trim();
+      if (!title || !description) return showNotice('Provide title and description', true);
+
+      const doc = {
+        title,
+        description,
+        authorId: currentUser.uid,
+        authorEmail: currentUser.email,
+        authorRole: currentUser.role,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      try{
+        await db.collection('proposals').add(doc);
+        titleEl.value = ''; descEl.value = '';
+        showNotice('Proposal posted');
+      } catch(err){
+        showNotice('Post error: ' + err.message, true);
+      }
+    });
+
+    clearBtn.addEventListener('click', ()=>{ titleEl.value = ''; descEl.value = ''; });
+
+    // Refresh list
+    refreshBtn.addEventListener('click', ()=> loadList());
+
+    // Subscribe to auth state changes
+    auth.onAuthStateChanged(async (user) => {
+      if (!user){
+        // signed out
+        currentUser = null;
+        userInfo.style.display = 'none';
+        postArea.style.display = 'none';
+        authArea.style.display = 'block';
+        authControls.innerHTML = '';
+        return;
+      }
+      // get user role from 'users' doc
+      try{
+        const doc = await db.collection('users').doc(user.uid).get();
+        const data = doc.exists ? doc.data() : null;
+        currentUser = { uid: user.uid, email: user.email, role: data && data.role ? data.role : 'business' };
+      } catch(e){
+        currentUser = { uid: user.uid, email: user.email, role: 'business' };
+      }
+
+      // update UI
+      userEmail.textContent = currentUser.email;
+      userRole.textContent = 'Role: ' + currentUser.role;
+      userInfo.style.display = 'block';
+      authArea.style.display = 'none';
+      postArea.style.display = 'block';
+
+      // change post title based on role
+      postTitle.textContent = currentUser.role === 'business' ? 'Post Business Idea' : 'Post Investor Proposal';
+
+      // show quick actions
+      extraActions.innerHTML = '';
+      const btn = document.createElement('button');
+      btn.className = 'btn ghost small';
+      btn.textContent = currentUser.role === 'business' ? 'My Business Posts' : 'My Investor Posts';
+      btn.addEventListener('click', ()=> loadList(currentUser.uid));
+      extraActions.appendChild(btn);
+
+      // load proposals
+      loadList();
+    });
+
+    // Load proposals (optionally filter by ownerId)
+    async function loadList(ownerId = null){
+      listEl.innerHTML = '<div class="muted">Loading...</div>';
+      try{
+        let q = db.collection('proposals').orderBy('createdAt', 'desc').limit(200);
+        const roleFilter = filterRole.value;
+        // Firestore doesn't allow combining where + orderBy on arbitrary fields without indexes in some cases.
+        // For demonstration we fetch ordered by createdAt then filter client-side by role & search.
+        const snapshot = await q.get();
+        const items = [];
+        snapshot.forEach(doc => items.push({ id: doc.id, ...(doc.data() || {}) }));
+
+        // client-side filter
+        const term = searchEl.value.trim().toLowerCase();
+        const filtered = items.filter(item=>{
+          if (ownerId && item.authorId !== ownerId) return false;
+          if (roleFilter && item.authorRole !== roleFilter) return false;
+          if (!term) return true;
+          return (item.title && item.title.toLowerCase().includes(term)) ||
+                 (item.description && item.description.toLowerCase().includes(term));
+        });
+
+        // render
+        if (filtered.length === 0){
+          listEl.innerHTML = '<div class="muted">No proposals found.</div>';
+          return;
+        }
+        listEl.innerHTML = '';
+        filtered.forEach(item => {
+          const el = document.createElement('div');
+          el.className = 'proposal';
+          const created = item.createdAt && item.createdAt.toDate ? item.createdAt.toDate().toLocaleString() : '';
+          el.innerHTML = `
+            <div style="display:flex; justify-content:space-between; gap:12px; align-items:center">
+              <div style="font-weight:800">${escapeHtml(item.title || 'Untitled')}</div>
+              <div class="muted">${created}</div>
+            </div>
+            <div class="meta" style="margin-top:8px">
+              <div class="muted">By: ${escapeHtml(item.authorEmail || 'unknown')}</div>
+              <div class="muted">Role: ${escapeHtml(item.authorRole || '')}</div>
+            </div>
+            <div style="margin-top:8px; color:#0b1220">${escapeHtml(shorten(item.description || '', 360))}</div>
+            <div class="tags" aria-hidden="true">
+              <div class="tag">${escapeHtml(item.authorRole || '')}</div>
+            </div>
+            <div style="margin-top:8px; display:flex; gap:8px; justify-content:flex-end">
+              <button class="btn ghost small viewBtn">View</button>
+              ${currentUser && currentUser.uid === item.authorId ? <button class="btn small deleteBtn">Delete</button> : ''}
+            </div>
+          `;
+          // view handler
+          el.querySelector('.viewBtn').addEventListener('click', ()=> {
+            showDetailModal(item);
+          });
+          const delBtn = el.querySelector('.deleteBtn');
+          if (delBtn){
+            delBtn.addEventListener('click', async ()=>{
+              if (!confirm('Delete this post?')) return;
+              try{
+                await db.collection('proposals').doc(item.id).delete();
+                showNotice('Deleted');
+                loadList();
+              } catch(err){ showNotice('Delete error: '+err.message, true); }
+            });
+          }
+          listEl.appendChild(el);
+        });
+
+      } catch(err){
+        listEl.innerHTML = '<div class="danger">Error loading proposals: ' + err.message + '</div>';
+      }
+    }
+
+    // Small helpers
+    function shorten(s, n){ return s.length > n ? s.slice(0,n) + '…' : s; }
+    function escapeHtml(unsafe){
+      return String(unsafe)
+        .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+        .replaceAll('"','&quot;').replaceAll("'",'&#039;');
+    }
+
+    // Detail modal (simple)
+    function showDetailModal(item){
+      const modal = document.createElement('div');
+      modal.style.position = 'fixed';
+      modal.style.left = 0; modal.style.top = 0; modal.style.right = 0; modal.style.bottom = 0;
+      modal.style.background = 'rgba(8,15,36,0.45)';
+      modal.style.display = 'flex'; modal.style.alignItems='center'; modal.style.justifyContent='center';
+      modal.innerHTML = `
+        <div style="width:90%; max-width:720px; background:#fff; border-radius:12px; padding:18px; box-shadow:0 20px 40px rgba(2,6,23,0.35)">
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <div style="font-weight:900; font-size:18px">${escapeHtml(item.title)}</div>
+            <div style="display:flex; gap:8px">
+              <button class="btn ghost small closeBtn">Close</button>
+            </div>
+          </div>
+          <div style="margin-top:12px; color:var(--muted)">By ${escapeHtml(item.authorEmail)} • Role: ${escapeHtml(item.authorRole)}</div>
+          <div style="margin-top:12px; white-space:pre-line; color:#0b1220">${escapeHtml(item.description)}</div>
+        </div>
+      `;
+      modal.querySelector('.closeBtn').addEventListener('click', ()=> modal.remove());
+      modal.addEventListener('click', (e)=> { if (e.target === modal) modal.remove() });
+      document.body.appendChild(modal);
+    }
+
+    // Live search/filter
+    searchEl.addEventListener('input', debounce(()=> loadList(), 300));
+    filterRole.addEventListener('change', ()=> loadList());
+
+    // Simple debounce
+    function debounce(fn, wait=200){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), wait); } }
+
+    // Utility: show ephemeral notice on top
+    function showNotice(msg, isError=false){
+      const el = document.createElement('div');
+      el.textContent = msg; el.className = isError ? 'danger' : 'muted';
+      el.style.position='fixed'; el.style.right='20px'; el.style.top='20px'; el.style.padding='10px 14px';
+      el.style.borderRadius='8px'; el.style.background = isError ? '#fff0f0' : '#f8fafc';
+      el.style.boxShadow='0 8px 30px rgba(2,6,23,0.12)'; el.style.zIndex = 9999;
+      document.body.appendChild(el);
+      setTimeout(()=> el.remove(), 3500);
+    }
+
+    // Initial load
+    loadList();
+  </script>
+
+  <!--
+    FIRESTORE RULES (for testing ONLY)
+    ----------------------------------
+    In Firebase Console -> Firestore -> Rules, for quick testing you can use:
+    service cloud.firestore {
+      match /databases/{database}/documents {
+        match /{document=} {
+          allow read, write: if request.auth != null;
+        }
+      }
+    }
+    For production, tighten rules:
+      - allow users to edit their own "users" doc
+      - allow create proposals if signed in
+      - allow delete only if request.auth.uid == resource.data.authorId
+  -->
+
+</body>
+</html>
