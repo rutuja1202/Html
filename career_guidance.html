@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Career Guidance — Demo</title>
+  <style>
+    /* --- Simple responsive CSS --- */
+    :root{
+      --accent: #6b8cff;
+      --muted:#666;
+      --card-bg:#fff;
+      --bg:#f6f7fb;
+      --maxw:980px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;
+      background:var(--bg);
+      color:#222;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:24px;
+      display:flex;
+      justify-content:center;
+    }
+    .container{
+      width:100%;
+      max-width:var(--maxw);
+    }
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:18px;
+    }
+    h1{margin:0;font-size:1.25rem}
+    nav > button{
+      background:transparent;border:1px solid var(--accent);color:var(--accent);
+      padding:8px 12px;border-radius:8px;cursor:pointer;margin-left:8px;
+    }
+    .grid{
+      display:grid;
+      gap:16px;
+      grid-template-columns: 1fr 360px;
+    }
+    @media (max-width:900px){
+      .grid{grid-template-columns:1fr;}
+    }
+    .card{
+      background:var(--card-bg);
+      border-radius:12px;
+      padding:16px;
+      box-shadow:0 6px 18px rgba(20,30,60,0.06);
+    }
+    form{display:flex;flex-direction:column;gap:10px}
+    input,select,textarea{padding:10px;border-radius:8px;border:1px solid #e6e9f2}
+    button.primary{
+      background:var(--accent);color:#fff;border:0;padding:10px 14px;border-radius:10px;cursor:pointer;
+    }
+    .muted{color:var(--muted);font-size:0.9rem}
+    ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+    .college{
+      display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;border:1px dashed #eee;
+    }
+    .small{font-size:0.85rem}
+    .admin-toggle{margin-top:8px;display:flex;gap:8px;align-items:center}
+    .test-questions{display:flex;flex-direction:column;gap:12px}
+    .answer{display:flex;gap:8px;align-items:center}
+    .hidden{display:none}
+    footer{margin-top:14px;color:var(--muted);font-size:0.85rem}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Career Guidance — Demo</h1>
+      <nav>
+        <span id="user-email" class="muted"></span>
+        <button id="btn-logout" class="hidden">Sign out</button>
+        <button id="btn-show-auth">Login / Sign up</button>
+      </nav>
+    </header>
+
+    <div class="grid">
+      <!-- Left: content -->
+      <div>
+        <div id="auth-card" class="card hidden">
+          <h2>Sign up / Login</h2>
+          <form id="auth-form">
+            <input id="email" type="email" placeholder="Email" required />
+            <input id="password" type="password" placeholder="Password (6+ chars)" required />
+            <div style="display:flex;gap:8px">
+              <button id="btn-signup" type="button" class="primary">Sign up</button>
+              <button id="btn-signin" type="button">Sign in</button>
+            </div>
+            <label class="small"><input type="checkbox" id="is-admin" /> Register as admin (demo)</label>
+            <p class="muted small">Admins can add colleges. In production, admin role should be granted server-side.</p>
+          </form>
+        </div>
+
+        <div id="colleges-card" class="card">
+          <h2>Colleges</h2>
+          <div id="college-list" class="muted">Loading colleges...</div>
+        </div>
+
+        <div id="test-card" class="card" style="margin-top:14px">
+          <h2>Aptitude Test (sample)</h2>
+          <div id="test-area">
+            <p class="muted">Simple 3-question test. Finish to save your score.</p>
+            <div id="test-questions" class="test-questions"></div>
+            <div style="margin-top:10px">
+              <button id="btn-submit-test" class="primary">Submit Test</button>
+            </div>
+            <div id="test-result" class="muted" style="margin-top:8px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: admin panel + registration -->
+      <aside>
+        <div id="admin-card" class="card hidden">
+          <h3>Add College (admin)</h3>
+          <form id="college-form">
+            <input id="college-name" placeholder="College name" required />
+            <input id="college-location" placeholder="Location (India / Abroad / City)" required />
+            <textarea id="college-desc" placeholder="Short description" rows="3"></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="primary" type="button" id="btn-add-college">Add College</button>
+              <button type="button" id="btn-refresh">Refresh List</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Register for college</h3>
+          <div id="register-form">
+            <p class="muted small">Select a college from the list and hit Register (must be signed in).</p>
+            <select id="select-college"><option value="">-- choose --</option></select>
+            <input id="preferred-course" placeholder="Preferred course (e.g. B.Tech)" />
+            <button id="btn-register" class="primary" style="margin-top:8px">Register</button>
+            <div id="register-msg" class="muted small" style="margin-top:8px"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3>Your registrations</h3>
+          <ul id="user-registrations" class="muted"></ul>
+        </div>
+      </aside>
+    </div>
+
+    <footer>Demo app — replace Firebase config and adjust security rules for production.</footer>
+  </div>
+
+  <!-- Firebase (modular) via CDN -->
+  <script type="module">
+    // --- FIREBASE CONFIG: replace with your project's config ---
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+    // --- End config ---
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import {
+      getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+      onAuthStateChanged, signOut, updateProfile
+    } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+    import {
+      getFirestore, collection, addDoc, getDocs, query, where,
+      doc, setDoc, getDoc, orderBy, serverTimestamp, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // --- DOM ---
+    const btnShowAuth = document.getElementById('btn-show-auth');
+    const authCard = document.getElementById('auth-card');
+    const btnSignUp = document.getElementById('btn-signup');
+    const btnSignIn = document.getElementById('btn-signin');
+    const btnLogout = document.getElementById('btn-logout');
+    const userEmailSpan = document.getElementById('user-email');
+    const isAdminCheckbox = document.getElementById('is-admin');
+
+    const collegeListDiv = document.getElementById('college-list');
+    const selectCollege = document.getElementById('select-college');
+    const userRegistrations = document.getElementById('user-registrations');
+    const btnRegister = document.getElementById('btn-register');
+    const registerMsg = document.getElementById('register-msg');
+
+    const adminCard = document.getElementById('admin-card');
+    const btnAddCollege = document.getElementById('btn-add-college');
+    const btnRefresh = document.getElementById('btn-refresh');
+
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+
+    // aptitude test
+    const testQuestionsDiv = document.getElementById('test-questions');
+    const btnSubmitTest = document.getElementById('btn-submit-test');
+    const testResult = document.getElementById('test-result');
+
+    // sample questions (in production you'd pull from DB)
+    const QUESTIONS = [
+      {
+        id:1, q:'If a train travels 60 km in 1.5 hours, its average speed is?',
+        options:['30 km/h','40 km/h','45 km/h','50 km/h'], answer:2
+      },
+      {
+        id:2, q:'Which HTML tag is used for the largest heading?',
+        options:['<h6>','<h1>','<head>','<header>'], answer:1
+      },
+      {
+        id:3, q:'2 + 2 * 3 = ?',
+        options:['8','12','10','6'], answer:8
+      }
+    ];
+
+    // show test questions
+    function renderTest(){
+      testQuestionsDiv.innerHTML = '';
+      for(const qq of QUESTIONS){
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `<div><strong>${qq.q}</strong></div>`;
+        const opts = document.createElement('div');
+        for(let i=0;i<qq.options.length;i++){
+          const label = document.createElement('label');
+          label.className = 'answer small';
+          label.innerHTML = `<input type="radio" name="q${qq.id}" value="${i}"> ${qq.options[i]}`;
+          opts.appendChild(label);
+        }
+        wrapper.appendChild(opts);
+        testQuestionsDiv.appendChild(wrapper);
+      }
+    }
+    renderTest();
+
+    // toggle auth panel
+    btnShowAuth.addEventListener('click',()=>{
+      authCard.classList.toggle('hidden');
+    });
+
+    // signup
+    btnSignUp.addEventListener('click', async ()=>{
+      const email = emailInput.value.trim();
+      const pwd = passwordInput.value;
+      if(!email || pwd.length < 6){ alert('Enter valid email and password (6+ chars)'); return; }
+      try{
+        const userCred = await createUserWithEmailAndPassword(auth, email, pwd);
+        // mark admin in a user document (demo only — secure via claims in production!)
+        const uid = userCred.user.uid;
+        const isAdmin = isAdminCheckbox.checked;
+        await setDoc(doc(db,'users', uid), { email, isAdmin: !!isAdmin, createdAt: serverTimestamp() });
+        alert('Signup successful');
+        emailInput.value = passwordInput.value = '';
+        authCard.classList.add('hidden');
+      }catch(err){
+        alert('Signup error: ' + err.message);
+      }
+    });
+
+    // signin
+    btnSignIn.addEventListener('click', async ()=>{
+      const email = emailInput.value.trim();
+      const pwd = passwordInput.value;
+      if(!email || !pwd){ alert('Enter creds'); return; }
+      try{
+        await signInWithEmailAndPassword(auth,email,pwd);
+        emailInput.value = passwordInput.value = '';
+        authCard.classList.add('hidden');
+      }catch(err){
+        alert('Signin error: ' + err.message);
+      }
+    });
+
+    // logout
+    btnLogout.addEventListener('click', async ()=>{
+      await signOut(auth);
+    });
+
+    // observe auth state
+    onAuthStateChanged(auth, async (user)=>{
+      if(user){
+        userEmailSpan.textContent = user.email;
+        btnLogout.classList.remove('hidden');
+        btnShowAuth.classList.add('hidden');
+        // fetch user doc to see admin flag
+        const udoc = await getDoc(doc(db,'users', user.uid));
+        const isAdmin = udoc.exists() && udoc.data().isAdmin;
+        if(isAdmin) adminCard.classList.remove('hidden'); else adminCard.classList.add('hidden');
+        loadUserRegistrations(user.uid);
+      }else{
+        userEmailSpan.textContent = '';
+        btnLogout.classList.add('hidden');
+        btnShowAuth.classList.remove('hidden');
+        adminCard.classList.add('hidden');
+        userRegistrations.innerHTML = '';
+      }
+    });
+
+    // --- Colleges: add and list ---
+    async function addCollege(name, location, desc){
+      try{
+        await addDoc(collection(db,'colleges'), {
+          name, location, desc, createdAt: serverTimestamp()
+        });
+        alert('College added');
+        loadColleges();
+      }catch(err){
+        alert('Add college error: ' + err.message);
+      }
+    }
+    btnAddCollege.addEventListener('click', ()=>{
+      const name = document.getElementById('college-name').value.trim();
+      const location = document.getElementById('college-location').value.trim();
+      const desc = document.getElementById('college-desc').value.trim();
+      if(!name || !location){ alert('Provide name and location'); return; }
+      addCollege(name,location,desc);
+      document.getElementById('college-name').value = '';
+      document.getElementById('college-location').value = '';
+      document.getElementById('college-desc').value = '';
+    });
+
+    btnRefresh.addEventListener('click', loadColleges);
+
+    async function loadColleges(){
+      collegeListDiv.textContent = 'Loading colleges...';
+      selectCollege.innerHTML = '<option value="">-- choose --</option>';
+      try{
+        const q = query(collection(db,'colleges'), orderBy('createdAt','desc'));
+        const snap = await getDocs(q);
+        if(snap.empty){ collegeListDiv.innerHTML = '<p class="muted">No colleges added yet.</p>'; return; }
+        const list = [];
+        snap.forEach(docu=>{
+          const d = { id: docu.id, ...docu.data() };
+          list.push(d);
+        });
+        // render
+        collegeListDiv.innerHTML = '';
+        list.forEach(c=>{
+          const el = document.createElement('div');
+          el.className = 'college';
+          el.innerHTML = `<div>
+            <div style="font-weight:600">${c.name}</div>
+            <div class="muted small">${c.location} • ${c.desc || ''}</div>
+          </div>
+          <div>
+            <button data-id="${c.id}" class="btn-register-college">Register</button>
+          </div>`;
+          collegeListDiv.appendChild(el);
+
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.name + ' — ' + c.location;
+          selectCollege.appendChild(opt);
+        });
+        // handle inline register buttons
+        document.querySelectorAll('.btn-register-college').forEach(b=>{
+          b.addEventListener('click', ()=>{
+            selectCollege.value = b.dataset.id;
+            window.scrollTo({top:0,behavior:'smooth'});
+          });
+        });
+      }catch(err){
+        collegeListDiv.textContent = 'Error loading colleges: ' + err.message;
+      }
+    }
+
+    // on load
+    loadColleges();
+
+    // register for selected college
+    btnRegister.addEventListener('click', async ()=>{
+      const user = auth.currentUser;
+      if(!user){ alert('Please sign in to register'); return; }
+      const collegeId = selectCollege.value;
+      const course = document.getElementById('preferred-course').value.trim();
+      if(!collegeId){ alert('Pick a college'); return; }
+      try{
+        // add registration
+        await addDoc(collection(db,'registrations'), {
+          userId: user.uid,
+          userEmail: user.email,
+          collegeId,
+          course: course || null,
+          createdAt: serverTimestamp()
+        });
+        registerMsg.textContent = 'Registered successfully.';
+        setTimeout(()=> registerMsg.textContent = '', 4000);
+        loadUserRegistrations(user.uid);
+      }catch(err){
+        registerMsg.textContent = 'Error: ' + err.message;
+      }
+    });
+
+    // load registrations for current user
+    async function loadUserRegistrations(uid){
+      userRegistrations.innerHTML = 'Loading...';
+      try{
+        const q = query(collection(db,'registrations'), where('userId','==',uid), orderBy('createdAt','desc'));
+        const snap = await getDocs(q);
+        userRegistrations.innerHTML = '';
+        if(snap.empty){ userRegistrations.innerHTML = '<li class="muted small">No registrations yet.</li>'; return; }
+        for(const docu of snap.docs){
+          const d = docu.data();
+          // fetch college name
+          const cdoc = await getDoc(doc(db,'colleges', d.collegeId));
+          const cname = cdoc.exists()? cdoc.data().name : 'Unknown';
+          const li = document.createElement('li');
+          li.innerHTML = `<div><strong>${cname}</strong><div class="muted small">${d.course || 'No course specified'} — ${new Date(d.createdAt?.toMillis?.() || Date.now()).toLocaleString()}</div></div>`;
+          userRegistrations.appendChild(li);
+        }
+      }catch(err){
+        userRegistrations.innerHTML = 'Error loading registrations: ' + err.message;
+      }
+    }
+
+    // --- Test submit: evaluate locally and save score ---
+    btnSubmitTest.addEventListener('click', async ()=>{
+      const user = auth.currentUser;
+      if(!user){ alert('Sign in to submit test'); return; }
+      let score = 0;
+      const answers = {};
+      for(const q of QUESTIONS){
+        const sel = document.querySelector(`input[name="q${q.id}"]:checked`);
+        const v = sel ? parseInt(sel.value,10) : null;
+        answers[q.id] = v;
+        if(v === q.answer) score++;
+      }
+      const percent = Math.round((score / QUESTIONS.length) * 100);
+      testResult.textContent = `You scored ${score}/${QUESTIONS.length} (${percent}%)`;
+      // save to Firestore
+      try{
+        await addDoc(collection(db,'aptitudeResults'), {
+          userId: user.uid,
+          userEmail: user.email,
+          answers,
+          score,
+          maxScore: QUESTIONS.length,
+          percent,
+          createdAt: serverTimestamp()
+        });
+      }catch(err){
+        console.warn('Could not save test result:', err);
+      }
+    });
+
+    // realtime listener for colleges (optional nice-to-have)
+    onSnapshot(collection(db,'colleges'), (snap)=>{
+      // reload list quickly when changes happen
+      loadColleges();
+    });
+
+  </script>
+</body>
+</html>
