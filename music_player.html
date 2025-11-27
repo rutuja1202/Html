@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Music Player</title>
+  <link rel="stylesheet" href="music_player.css" />
+</head>
+
+<body>
+  <div class="player">
+    <div class="song-info">
+      <h3 id="title">Title</h3>
+      <p id="artist">Artist</p>
+    </div>
+
+    <div class="progress-container" id="progress-container">
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <div class="time">
+      <span id="current-time">0:00</span>
+      <span id="duration">0:00</span>
+    </div>
+
+    <div class="controls">
+      <button id="prev">⏮</button>
+      <button id="play">▶</button>
+      <button id="next">⏭</button>
+    </div>
+
+    <input type="range" id="volume" min="0" max="1" step="0.01">
+
+    <h4>Playlist</h4>
+    <ul id="playlist"></ul>
+  </div>
+
+  <audio id="audio"></audio>
+  <script src="music_player.js"></script>
+</body>
+</html>
