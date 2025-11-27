@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipe Book</title>
+  <link rel="stylesheet" href="recipe_book.css">
+</head>
+<body>
+
+  <header>
+    <h1>🍽 Recipe Book</h1>
+    <input type="text" id="search" placeholder="Search recipes...">
+    <button id="addBtn">➕ Add Recipe</button>
+  </header>
+
+  <main id="recipeList"></main>
+
+  <!-- Add / Edit Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2 id="modalTitle">Add Recipe</h2>
+
+      <input type="text" id="recipeName" placeholder="Recipe Name">
+      <textarea id="recipeDetails" placeholder="Recipe Details"></textarea>
+
+      <label>Upload Image</label>
+      <input type="file" id="recipeImg" accept="image/*">
+
+      <div class="btn-row">
+        <button id="saveRecipe">Save</button>
+        <button id="closeModal">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="recipe_book.js"></script>
+</body>
+</html>
