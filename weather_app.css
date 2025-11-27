@@ -1,0 +1,33 @@
+:root{
+  --bg:#eef6ff; --card:#ffffff; --accent:#0366d6; --muted:#556;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  background:linear-gradient(180deg,#f7fbff,var(--bg)); min-height:100vh;
+  display:flex; align-items:center; justify-content:center; padding:28px;
+}
+.weather-container{
+  width:100%; max-width:720px; background:var(--card);
+  border-radius:var(--radius); padding:20px; box-shadow:0 8px 30px rgba(10,20,40,0.08);
+}
+h1{ margin:0 0 12px; font-size:20px }
+.search-box{ display:flex; gap:8px; margin-bottom:14px }
+.search-box input{
+  flex:1; padding:10px 12px; border-radius:8px; border:1px solid #e6eef8;
+  font-size:15px; outline:none;
+}
+.search-box button{
+  padding:10px 14px; border-radius:8px; background:var(--accent); color:#fff; border:0; cursor:pointer;
+}
+.weather-result{ margin-top:10px; padding:12px; border-radius:8px; background:#f8fbff; min-height:80px }
+.card{ display:flex; gap:16px; align-items:center }
+.card .main{ flex:1 }
+.city{ font-weight:800; font-size:18px }
+.temp{ font-size:28px; font-weight:700; color:var(--accent) }
+.small{ color:var(--muted); font-size:13px }
+.note{ margin-top:12px; color:var(--muted); font-size:13px }
+.link{ color:var(--accent) }
+.error{ color:#b91c1c; font-weight:700 }
+.center{ text-align:center }
