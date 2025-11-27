@@ -1,0 +1,150 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Career Guidance — Demo</title>
+
+  <style>
+    /* ---------- BASIC RESET ---------- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    /* ---------- HEADER ---------- */
+    header {
+      background: #6b8eed;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    /* ---------- FORM CONTAINER ---------- */
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin: 10px 0 5px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #6b8eed;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      border: none;
+    }
+
+    button:hover {
+      background: #5274d9;
+    }
+
+    /* ---------- RESULT BOX ---------- */
+    .result {
+      background: #e8f0fe;
+      padding: 15px;
+      border-left: 5px solid #6b8eed;
+      margin-top: 20px;
+      border-radius: 5px;
+      display: none;
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 480px) {
+      body { padding: 10px; }
+      header { font-size: 20px; padding: 15px; }
+      button { font-size: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Career Guidance Demo</h1>
+    <p>Get a suggestion based on your interest</p>
+  </header>
+
+  <div class="container">
+    <label for="name">Enter Your Name</label>
+    <input type="text" id="name" placeholder="Enter your name">
+
+    <label for="interest">Select Your Interest</label>
+    <select id="interest">
+      <option value="">-- Choose Field --</option>
+      <option value="web">Web Development</option>
+      <option value="ai">Artificial Intelligence</option>
+      <option value="cyber">Cyber Security</option>
+      <option value="data">Data Science</option>
+      <option value="cloud">Cloud Computing</option>
+    </select>
+
+    <button onclick="giveSuggestion()">Get Suggestion</button>
+
+    <div id="output" class="result"></div>
+  </div>
+
+  <script>
+    function giveSuggestion() {
+      const name = document.getElementById("name").value.trim();
+      const interest = document.getElementById("interest").value;
+      const resultBox = document.getElementById("output");
+
+      if (name === "" || interest === "") {
+        resultBox.style.display = "block";
+        resultBox.innerHTML = "⚠️ Please enter your name and select a field.";
+        return;
+      }
+
+      let suggestion = "";
+
+      if (interest === "web") {
+        suggestion = "Web Development: Learn HTML, CSS, JavaScript, React, and build responsive websites.";
+      }
+      else if (interest === "ai") {
+        suggestion = "Artificial Intelligence: Start with Python, Machine Learning, Neural Networks, and Math basics.";
+      }
+      else if (interest === "cyber") {
+        suggestion = "Cyber Security: Learn Networking, Linux, Ethical Hacking, and Security Tools.";
+      }
+      else if (interest === "data") {
+        suggestion = "Data Science: Learn Python, SQL, Pandas, ML models, and Data Visualization.";
+      }
+      else if (interest === "cloud") {
+        suggestion = "Cloud Computing: Learn AWS, Azure, Docker, Kubernetes, and DevOps tools.";
+      }
+
+      resultBox.style.display = "block";
+      resultBox.innerHTML = `<strong>${name}</strong>, based on your interest, you should study:<br><br>${suggestion}`;
+    }
+  </script>
+
+</body>
+</html>

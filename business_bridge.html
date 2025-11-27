@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Investors ⇄ Business Bridge</title>
+  <style>
+    :root{
+      --bg:#f5f7fb; --card:#fff; --accent:#2563eb; --muted:#64748b;
+      --good:#10b981; --danger:#ef4444; --radius:10px;
+      font-synthesis:none;
+    }
+    *{ box-sizing:border-box }
+    body{
+      margin:0; font-family:Inter,Arial,sans-serif;
+      background:linear-gradient(180deg,#eef2ff,#f8fafc);
+      min-height:100vh; display:flex; justify-content:center; padding:28px;
+    }
+    .container{
+      width:100%; max-width:1100px;
+      display:grid; grid-template-columns:360px 1fr; gap:20px;
+    }
+    .card{
+      background:var(--card); border-radius:var(--radius); padding:18px;
+      box-shadow:0 8px 30px rgba(15,23,42,0.06);
+    }
+    header{ grid-column:1/-1; display:flex; justify-content:space-between; align-items:center }
+    h1{ margin:0; font-size:20px; color:#0f172a }
+    .muted{ color:var(--muted); font-size:13px }
+
+    /* form */
+    label{ display:block; font-size:13px; margin-top:10px; font-weight:600 }
+    input, select, textarea{
+      width:100%; padding:10px; margin-top:6px; border-radius:8px;
+      border:1px solid #e6eef8; background:#fbfdff;
+    }
+    .btn{
+      padding:10px 12px; border-radius:8px; background:var(--accent);
+      color:#fff; border:0; cursor:pointer; font-weight:700;
+    }
+    .btn.ghost{ background:#eaf2ff; color:var(--accent) }
+    .small{ padding:6px 10px; font-size:13px }
+
+    /* proposals */
+    .list{ display:grid; gap:10px; max-height:62vh; overflow:auto }
+    .proposal{
+      background:linear-gradient(180deg,#fff,#fbfdff); border:1px solid #eef4ff;
+      border-radius:10px; padding:12px;
+    }
+    .meta{ display:flex; justify-content:space-between; font-size:13px; color:var(--muted) }
+    .tag{ padding:6px 8px; background:#f1f7ff; color:var(--accent); font-size:12px; border-radius:20px }
+
+    @media(max-width:960px){
+      .container{ grid-template-columns:1fr }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div>
+      <h1>Bridge: Investors ↔ Businesses</h1>
+      <div class="muted">Connect, post proposals & explore opportunities</div>
+    </div>
+    <div id="authControls"></div>
+  </header>
+
+  <!-- LEFT SIDE -->
+  <aside class="card">
+    <div id="authArea">
+      <h3>Sign Up / Login</h3>
+
+      <label>Role</label>
+      <select id="role">
+        <option value="business">Business</option>
+        <option value="investor">Investor</option>
+      </select>
+
+      <label>Email</label>
+      <input id="email" type="email" />
+
+      <label>Password</label>
+      <input id="password" type="password" />
+
+      <div style="margin-top:12px; display:flex; gap:8px">
+        <button id="registerBtn" class="btn">Register</button>
+        <button id="loginBtn" class="btn ghost">Login</button>
+      </div>
+    </div>
+
+    <div id="postArea" style="display:none; margin-top:16px;">
+      <h3 id="postTitle">Post Idea</h3>
+
+      <label>Title</label>
+      <input id="title" type="text" />
+
+      <label>Description</label>
+      <textarea id="description" rows="6"></textarea>
+
+      <div style="margin-top:10px; display:flex; gap:8px">
+        <button id="postBtn" class="btn">Post</button>
+        <button id="clearBtn" class="btn ghost">Clear</button>
+      </div>
+
+      <div id="extraActions" style="margin-top:12px"></div>
+    </div>
+
+    <div id="userInfo" style="display:none; margin-top:18px">
+      <h4>Logged in as:</h4>
+      <div id="userEmail" style="font-weight:700"></div>
+      <div id="userRole" class="muted"></div>
+
+      <div style="margin-top:8px">
+        <button id="logoutBtn" class="btn ghost small">Logout</button>
+        <button id="refreshBtn" class="btn small">Refresh</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- RIGHT SIDE -->
+  <section class="card">
+    <h3>Proposals</h3>
+
+    <div style="margin-top:10px; display:flex; gap:8px">
+      <input id="search" type="search" placeholder="Search..." style="flex:1" />
+      <select id="filterRole">
+        <option value="">All</option>
+        <option value="business">Business</option>
+        <option value="investor">Investor</option>
+      </select>
+    </div>
+
+    <div id="list" class="list" style="margin-top:12px"></div>
+  </section>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* ---------------------------- FIREBASE CONFIG -------------------------- */
+const firebaseConfig = {
+  apiKey: "your-api-key",
+  authDomain: "your-auth-domain",
+  projectId: "your-project-id",
+  storageBucket: "your-storage-bucket",
+  messagingSenderId: "your-messaging-sender-id",
+  appId: "your-app-id"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* ---------------------------- UI Elements ------------------------------ */
+const registerBtn = document.getElementById("registerBtn");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const refreshBtn = document.getElementById("refreshBtn");
+const roleEl = document.getElementById("role");
+const emailEl = document.getElementById("email");
+const pwdEl = document.getElementById("password");
+const postArea = document.getElementById("postArea");
+const authArea = document.getElementById("authArea");
+const userInfo = document.getElementById("userInfo");
+const userEmail = document.getElementById("userEmail");
+const userRole = document.getElementById("userRole");
+const postBtn = document.getElementById("postBtn");
+const clearBtn = document.getElementById("clearBtn");
+const titleEl = document.getElementById("title");
+const descEl = document.getElementById("description");
+const listEl = document.getElementById("list");
+const filterRole = document.getElementById("filterRole");
+const searchEl = document.getElementById("search");
+const postTitle = document.getElementById("postTitle");
+const extraActions = document.getElementById("extraActions");
+
+let currentUser = null;
+
+/* ---------------------------- Helper ------------------------------ */
+function showNotice(msg){
+  alert(msg);
+}
+
+/* Profile creation */
+function createProfile(uid, email, role){
+  return db.collection("users").doc(uid).set({
+    email, role, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge:true });
+}
+
+/* ---------------------------- Register ------------------------------ */
+registerBtn.onclick = async () => {
+  try {
+    const email = emailEl.value.trim();
+    const pwd = pwdEl.value;
+    const role = roleEl.value;
+
+    const cred = await auth.createUserWithEmailAndPassword(email, pwd);
+    await createProfile(cred.user.uid, email, role);
+    showNotice("Registered!");
+  } catch (e){
+    showNotice(e.message);
+  }
+};
+
+/* ---------------------------- Login ------------------------------ */
+loginBtn.onclick = async () => {
+  try {
+    await auth.signInWithEmailAndPassword(emailEl.value.trim(), pwdEl.value);
+    showNotice("Logged in!");
+  } catch(e){
+    showNotice(e.message);
+  }
+};
+
+/* ---------------------------- Logout ------------------------------ */
+logoutBtn.onclick = () => auth.signOut();
+
+/* ------------------------------ Post ------------------------------- */
+postBtn.onclick = async () => {
+  if (!currentUser) return;
+
+  try{
+    await db.collection("proposals").add({
+      title: titleEl.value,
+      description: descEl.value,
+      authorId: currentUser.uid,
+      authorEmail: currentUser.email,
+      authorRole: currentUser.role,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    titleEl.value = "";
+    descEl.value = "";
+    showNotice("Posted!");
+    loadList();
+  } catch(e){
+    showNotice(e.message);
+  }
+};
+
+clearBtn.onclick = () => { titleEl.value = ""; descEl.value = ""; };
+
+/* ----------------------- Auth state listener ----------------------- */
+auth.onAuthStateChanged(async user => {
+  if (!user){
+    currentUser = null;
+    authArea.style.display = "block";
+    postArea.style.display = "none";
+    userInfo.style.display = "none";
+    return;
+  }
+
+  const snap = await db.collection("users").doc(user.uid).get();
+  const data = snap.data();
+
+  currentUser = {
+    uid: user.uid,
+    email: user.email,
+    role: data.role
+  };
+
+  /* update UI */
+  authArea.style.display = "none";
+  postArea.style.display = "block";
+  userInfo.style.display = "block";
+
+  userEmail.textContent = currentUser.email;
+  userRole.textContent = "Role: " + currentUser.role;
+
+  postTitle.textContent = currentUser.role === "business"
+    ? "Post Business Idea"
+    : "Post Investor Proposal";
+
+  extraActions.innerHTML = `
+    <button class="btn ghost small" id="myPostsBtn">My Posts</button>
+  `;
+  document.getElementById("myPostsBtn").onclick = () =>
+    loadList(currentUser.uid);
+
+  loadList();
+});
+
+/* -------------------------- Load List ---------------------------- */
+async function loadList(ownerId = null){
+  listEl.innerHTML = "Loading...";
+
+  let snap = await db.collection("proposals")
+    .orderBy("createdAt", "desc")
+    .get();
+
+  let arr = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  let term = searchEl.value.toLowerCase();
+  let role = filterRole.value;
+
+  arr = arr.filter(x => {
+    if (ownerId && x.authorId !== ownerId) return false;
+    if (role && x.authorRole !== role) return false;
+    if (term){
+      return (x.title + x.description).toLowerCase().includes(term);
+    }
+    return true;
+  });
+
+  listEl.innerHTML = "";
+
+  if (!arr.length){
+    listEl.innerHTML = "<div>No results</div>";
+    return;
+  }
+
+  arr.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "proposal";
+
+    div.innerHTML = `
+      <div style="font-weight:700">${escape(item.title)}</div>
+      <div class="meta">
+        <span>${escape(item.authorEmail)}</span>
+        <span>${escape(item.authorRole)}</span>
+      </div>
+      <p>${escape(item.description)}</p>
+
+      <div style="margin-top:8px; display:flex; gap:8px">
+        <button class="btn ghost small viewBtn">View</button>
+        ${
+          currentUser && currentUser.uid === item.authorId
+          ? `<button class="btn small deleteBtn">Delete</button>`
+          : ""
+        }
+      </div>
+    `;
+
+    /* view */
+    div.querySelector(".viewBtn").onclick = () => alert(item.description);
+
+    /* delete */
+    const del = div.querySelector(".deleteBtn");
+    if (del){
+      del.onclick = async () => {
+        await db.collection("proposals").doc(item.id).delete();
+        loadList();
+      };
+    }
+
+    listEl.appendChild(div);
+  });
+}
+
+function escape(str){
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;");
+}
+
+/* live search */
+searchEl.oninput = () => loadList();
+filterRole.onchange = () => loadList();
+
+</script>
+</body>
+</html>
