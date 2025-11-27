@@ -1,0 +1,52 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #f2f2f2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.slider {
+  width: 800px;
+  height: 400px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.slides img {
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+
+.slides img.active {
+  display: block;
+}
+
+/* Previous/Next Buttons */
+.prev, .next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 10px 15px;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  font-size: 24px;
+  border: none;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.prev { left: 10px; }
+.next { right: 10px; }
+
+.prev:hover, .next:hover {
+  background: black;
+}
