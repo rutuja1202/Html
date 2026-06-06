@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Combined Webpage</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: lightblue;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Navigation Menu */
+        nav {
+            background-color: black;
+            padding: 15px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 15px;
+            font-size: 18px;
+        }
+
+        nav a:hover {
+            color: yellow;
+        }
+
+        /* Image */
+        img {
+            width: 300px;
+            border-radius: 10px;
+        }
+
+        /* Form */
+        input {
+            padding: 10px;
+            margin: 5px;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            background-color: blue;
+            color: white;
+        }
+
+        #colorBtn {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Menu -->
+    <nav>
+        <a href="#">Home</a>
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+    </nav>
+
+    <!-- Heading and Paragraph -->
+    <h1>Welcome to My Webpage</h1>
+    <p>This is a simple webpage using HTML, CSS, and JavaScript.</p>
+
+
+    <br><br>
+
+    <!-- Form -->
+    <h2>Simple Form</h2>
+    <form>
+        <input type="text" placeholder="Enter your name">
+        <button type="submit">Submit</button>
+    </form>
+
+    <br>
+
+    <!-- Button Color Change -->
+    <button id="colorBtn" onclick="changeColor()">
+        Click Me to Change Color
+    </button>
+
+    <br><br>
+
+    <!-- Calculator -->
+    <h2>Simple Calculator</h2>
+
+    <input type="number" id="num1" placeholder="First Number">
+    <input type="number" id="num2" placeholder="Second Number">
+
+    <button onclick="addNumbers()">Add</button>
+
+    <h3 id="result"></h3>
+
+    <script>
+        /* Greeting Alert Based on Time */
+        let hour = new Date().getHours();
+
+        if (hour < 12) {
+            alert("Good Morning!");
+        } 
+        else if (hour < 18) {
+            alert("Good Afternoon!");
+        } 
+        else {
+            alert("Good Evening!");
+        }
+
+        /* Change Button Color */
+        function changeColor() {
+            document.getElementById("colorBtn")
+            .style.backgroundColor = "green";
+        }
+
+        /* Calculator */
+        function addNumbers() {
+            let n1 = Number(document.getElementById("num1").value);
+            let n2 = Number(document.getElementById("num2").value);
+
+            let sum = n1 + n2;
+
+            document.getElementById("result").innerHTML =
+                "Result: " + sum;
+        }
+    </script>
+
+</body>
+</html>
