@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognifyz Internship</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #fbf59b;
+        }
+
+        /* Header */
+        header {
+            background: #007bff;
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        /* Section Styling */
+        section {
+            padding: 30px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #007bff;
+        }
+
+        /* Slideshow */
+        .slideshow {
+            width: 80%;
+            height: 300px;
+            margin: auto;
+            background-size: cover;
+            background-position: center;
+            animation: slide 12s infinite;
+            border-radius: 10px;
+        }
+
+        @keyframes slide {
+            0% {
+                background-image: url('https://encrhttps://www.go-globe.com/uae/web-design-sharjah.phpypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJMZiP-aWJMBAJuQltI2YiGHMnG4vQ6BztLPaljTSFCII8-V_40smMxyb2&s=10');
+            }
+            33% {
+                background-image: url('https://via.placeholder.com/800x300?text=Internship+2');
+            }
+            66% {
+                background-image: url('https://via.placeholder.com/800x300?text=Internship+3');
+            }
+            100% {
+                background-image: url('https://via.placeholder.com/800x300?text=Internship+1');
+
+            }
+        }
+
+
+        /* Image Gallery */
+        .gallery {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .gallery img {
+            width: 150px;
+            height: 100px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.3s;
+        }
+
+        /* Enlarge Image on Click */
+        .gallery img:active {
+            transform: scale(2);
+        }
+
+        /* Button */
+        .btn {
+            display: inline-block;
+            background: #007bff;
+            color: rgb(11, 11, 11);
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        /* Footer */
+        footer {
+            background: #222;
+            color: rgb(247, 62, 81);
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        /* Responsive Design */
+        @media(max-width: 768px) {
+            .gallery img {
+                width: 120px;
+                height: 80px;
+            }
+
+            .slideshow {
+                width: 95%;
+                height: 220px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <h1>Web Developer Internship Opportunities at Cognifyz Technologies</h1>
+        <p>Kickstart your career with practical learning and industry experience.</p>
+    </header>
+
+    <!-- Slideshow -->
+    <section>
+        <h2>Internship Highlights</h2>
+        <div class="slideshow"></div>
+    </section>
+    <section>
+        <h2>About the Internship</h2>
+        <p>
+            Our Web Developer Internship Program at Cognifyz Technologies
+            offers a great opportunity to work on real-world projects.
+            The internship duration is 3 to 6 months and includes
+            hands-on training with expert guidance.
+        </p>
+    </section>
+
+    <!-- Benefits -->
+    <section>
+        <h2>Benefits of Internship</h2>
+        <p>✔ Real-world project experience</p>
+        <p>✔ Mentorship from experienced developers</p>
+        <p>✔ Skill development and portfolio building</p>
+        <p>✔ Internship certificate</p>
+    </section>
+
+    <!-- Qualifications -->
+    <section>
+        <h2>Qualifications</h2>
+        <p>Knowledge of:</p>
+        <p>HTML, CSS, JavaScript</p>
+        <p>Bootstrap / Responsive Design</p>
+        <p>Basic understanding of Web Development</p>
+    </section>
+
+    <!-- Image Gallery -->
+    <section>
+        <h2>Gallery</h2>
+
+        <div class="gallery">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaCCy5bmnFRoYvVNJa0nX-J7XP5h0J82pxRLt7zd9MKg&s=10" alt="Image 4">
+            <img src="https://syntaxminds.com/wp-content/uploads/2024/10/python-2-1024x1024.jpg" alt="Image 1">
+            <img src="https://img.magnific.com/free-photo/business-data-analysis_53876-95296.jpg?semt=ais_hybrid&w=740&q=80" alt="Image 2">
+            <img src="https://dataflip.co/cdn/shop/articles/download-free-best-power-bi-dashboard-examples-in-2025-253328_b349eaab-9681-4887-87d0-67bce9c3706f_1024x.jpg?v=1749470307" alt="Image 3">
+            <img src="https://techmaax.com/wp-content/uploads/2026/05/java-full-stack.webp" alt="Image 4">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTiks9KjE58yP4kgTG9WwTEEpLzU0BlysTbl5KswWdpg&s=10" alt="Image 4">
+        </div>
+    </section>
+
+    <!-- CTA Button -->
+    <section>
+        <a href="#" class="btn">Apply Now</a>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>Contact Us</p>
+        <p>Email: info@cognifyz.com</p>
+        <p>Phone: +91 9876543210</p>
+        <p>Website: www.cognifyz.com</p>
+    </footer>
+
+</body>
+</html>
